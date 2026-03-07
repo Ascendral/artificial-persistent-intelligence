@@ -498,7 +498,7 @@ def check_pii_leakage(proposal: "Proposal") -> CheckResult:
 # ── Tool Risk Baseline (Article IX extension) ────────────────────────────────
 
 def check_tool_risk(proposal: "Proposal") -> CheckResult:
-    """Apply baseline risk score based on which OpenClaw tool is being called.
+    """Apply baseline risk score based on which tool is being called.
 
     Different tools have fundamentally different risk surfaces.
     exec > browser > network > message > write > edit > read.

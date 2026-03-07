@@ -1,5 +1,5 @@
 /**
- * LEGION Model — Executor (OpenClaw / Local Builder)
+ * LEGION Model — Executor (Local Builder)
  * Handles: writing files, running commands, git operations.
  * CORD validation happens BEFORE any action in the orchestrator.
  * This module only executes pre-approved actions.

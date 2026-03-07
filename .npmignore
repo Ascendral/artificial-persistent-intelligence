@@ -2,7 +2,6 @@
 cord_engine/
 tests/
 legion/
-openclaw-skill/
 vigil/
 dist/
 node_modules/

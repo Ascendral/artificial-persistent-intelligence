@@ -9,8 +9,6 @@
   "scripts": {
     "demo": "node demo.js",
     "legion": "node legion/index.js",
-    "dashboard": "node dashboard/server.js",
-    "oc-dashboard": "node openclaw-dashboard/server.js",
     "test": "jest --no-coverage",
     "redteam": "jest tests/redteam.test.js --no-coverage",
     "vigil": "jest vigil/ --no-coverage",

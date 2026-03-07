@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CORD JSON bridge — stdin/stdout interface for external callers (e.g., OpenClaw hooks).
+"""CORD JSON bridge — stdin/stdout interface for external callers (e.g., CodeBot hooks).
 
 Reads a JSON proposal from stdin, evaluates it through the CORD pipeline,
 and writes the verdict as JSON to stdout.

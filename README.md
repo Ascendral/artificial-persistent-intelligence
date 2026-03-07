@@ -176,39 +176,19 @@ Every `invoke()`, `execute()`, and `generate()` call is gated through CORD. If C
 
 **Every layer has been red-teamed.** See `tests/redteam.test.js` for all 40 attack vectors and `THREAT_MODEL.md` for the full threat model.
 
-## OpenClaw Command Center
+## Used by CodeBot-AI
 
-**Real-time agent management dashboard — zero dependencies.**
+CORD is the constitutional safety layer powering [CodeBot-AI](https://github.com/zanderone1980/codebot-ai) — the autonomous AI coding agent.
+
+When integrated with CodeBot, CORD provides:
+- **Input scanning** — VIGIL pre-screens all user messages for threats
+- **Tool gating** — Every tool call is evaluated against 14 constitutional checks before execution
+- **Output scanning** — Canary leak detection and PII scanning on all LLM responses
+- **Hard-block enforcement** — Immediate blocking for moral violations, protocol drift, and prompt injection
 
 ```bash
-npm run oc-dashboard    # http://localhost:3001
+npm install codebot-ai  # CORD is included automatically
 ```
-
-The Command Center is a web dashboard for managing the full OpenClaw AI agent system. It reads directly from `~/.openclaw/` and streams live events via SSE.
-
-**8 Pages:**
-
-| Page | What it does |
-|------|-------------|
-| Dashboard | Agent status cards, skill count, live CORD event feed |
-| Agents | Browse all agents, edit workspace files (IDENTITY, SOUL, USER, HEARTBEAT) |
-| Skills | Search/filter across all skills (workspace, managed, bundled) |
-| Channels | Discord channel config + connection status |
-| Sessions | Active gateway sessions |
-| Cron | Scheduled heartbeat tasks |
-| Logs | Gateway log viewer |
-| Security | CORD decision feed, block rate ring, risk signal breakdown |
-
-**4 Agents:**
-
-| Agent | Emoji | Role |
-|-------|-------|------|
-| Lazarus | ⚡ | Main assistant — general purpose |
-| Pink | 🩷 | Zander Pink brand operations — Shopify orders, inventory, customer comms |
-| Sentinel | 🛡️ | CORD security — test suite, red team, threat research |
-| Pixel | 📱 | Social media — Twitter/X, Instagram, TikTok content + posting |
-
-All agents share the `cord-security` skill — every action is CORD-gated before execution. Token/key sanitization is applied to all API responses.
 
 ## Extensively Tested
 

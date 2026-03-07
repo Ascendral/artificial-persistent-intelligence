@@ -285,7 +285,7 @@ function isCommandAllowed(proposal = "", scope) {
  *   networkTarget — Network host being contacted
  *   grants        — Permission grants in effect
  *   sessionIntent — Declared session goal (for intent drift check)
- *   toolName      — OpenClaw tool being called (exec, write, browser, etc.)
+ *   toolName      — Tool being called (exec, write, browser, etc.)
  *   actionType    — Action classification (network, file_op, communication, etc.)
  *   rawInput      — Raw external input to scan for prompt injection
  *

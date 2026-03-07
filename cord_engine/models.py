@@ -39,7 +39,7 @@ class Proposal:
     session_intent: str = ""
     context: dict[str, Any] = field(default_factory=dict)
     # v2.1 fields
-    tool_name: str = ""          # OpenClaw tool being called (exec, write, browser, etc.)
+    tool_name: str = ""          # Tool being called (exec, write, browser, etc.)
     source: str = "agent"        # Origin: "agent" | "external" | "user" | "tool_result"
     raw_input: str = ""          # Untrusted input being processed (for injection scanning)
 
