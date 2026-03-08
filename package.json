@@ -1,7 +1,7 @@
 {
   "name": "cord-engine",
   "version": "4.2.0",
-  "description": "The AI that polices itself. 40 attack vectors blocked. Constitutional enforcement + threat detection. Battle-tested, zero dependencies.",
+  "description": "Secure runtime for AI agents. Policy-enforced tool execution, secret blocking, audit trails. Drop into OpenAI, Anthropic, LangChain, CrewAI. Zero dependencies.",
   "main": "cord/index.js",
   "bin": {
     "cord-engine": "bin/cord-engine"

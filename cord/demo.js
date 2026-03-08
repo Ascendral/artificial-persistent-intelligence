@@ -184,7 +184,7 @@ async function main() {
     intent_text: "Run CORD attack demonstration",
     scope: {
       allowPaths: [repoRoot],
-      allowCommands: [/^git\s/i, /^npm\s/i, /^node\s/i],
+      allowCommands: [/^git\s/i, /^npm\s/i, /^node\s/i, /^edit\s/i, /^read\s/i, /^write\s/i, /^ls\s/i],
       allowNetworkTargets: ["github.com"],
     },
   });
@@ -203,6 +203,7 @@ async function main() {
     // Category header
     if (attack.category !== currentCategory) {
       currentCategory = attack.category;
+      // Benign tests skip VIGIL (useVigil: false) so attack history doesn't cause false positives
       console.log();
       console.log(`  ${BOLD}${MAGENTA}\u2500\u2500 ${currentCategory} ${"─".repeat(Math.max(0, 48 - currentCategory.length))}${R}`);
       console.log();
@@ -211,7 +212,7 @@ async function main() {
     // Dramatic pause
     await sleep(150);
 
-    // Run evaluation
+    // Run evaluation — benign tests skip VIGIL to avoid memory-escalation false positives
     const proposal = {
       text: attack.text,
       proposal: attack.text,
@@ -219,6 +220,7 @@ async function main() {
       sessionIntent: "Run CORD attack demonstration",
       path: attack.path,
       networkTarget: attack.networkTarget,
+      useVigil: !attack.isBenign,
     };
 
     const result = evaluateProposal(proposal);

@@ -12,10 +12,20 @@ function setIntentLock({ user_id, passphrase, intent_text, scope }) {
   if (!user_id || !passphrase || !intent_text || !scope) {
     throw new Error("Missing required fields for intent lock");
   }
+  // Serialize scope for JSON — convert RegExp to {__regex, flags} objects
+  const serializableScope = { ...scope };
+  if (Array.isArray(scope.allowCommands)) {
+    serializableScope.allowCommands = scope.allowCommands.map((pattern) => {
+      if (pattern instanceof RegExp) {
+        return { __regex: pattern.source, flags: pattern.flags };
+      }
+      return pattern;
+    });
+  }
   const payload = {
     user_id,
     intent_text,
-    scope,
+    scope: serializableScope,
     passphrase_hash: sha(passphrase),
     created_at: new Date().toISOString(),
   };
