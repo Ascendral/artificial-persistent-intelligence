@@ -7,9 +7,10 @@ npm install cord-engine
 npx cord-engine demo  # Watch it block attacks in real-time
 ```
 
-![Version](https://img.shields.io/badge/Version-4.2.0-blue)
-![Red Team Results](https://img.shields.io/badge/Red%20Team-40%2F40%20Stopped-brightgreen)
-![Tests](https://img.shields.io/badge/Tests-942%20Passing-brightgreen)
+[![CI](https://github.com/zanderone1980/artificial-persistent-intelligence/actions/workflows/ci.yml/badge.svg)](https://github.com/zanderone1980/artificial-persistent-intelligence/actions)
+[![npm](https://img.shields.io/npm/v/cord-engine?color=cb3837&logo=npm)](https://www.npmjs.com/package/cord-engine)
+![Tests](https://img.shields.io/badge/Tests-482%20Passing-brightgreen)
+![Red Team](https://img.shields.io/badge/Red%20Team-40%2F40%20Stopped-brightgreen)
 ![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero%20External-blue)
 
 ---
