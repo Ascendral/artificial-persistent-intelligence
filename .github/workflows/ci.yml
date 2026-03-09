@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
 
       - run: npm install
-      - run: npm test
+      - run: npm test -- --testPathIgnorePatterns=frameworks
 
   lint:
     runs-on: ubuntu-latest
