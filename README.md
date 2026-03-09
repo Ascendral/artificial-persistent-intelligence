@@ -1,6 +1,6 @@
 # CORD: The AI That Polices Itself
 
-**Constitutional AI governance for autonomous agents. 942 tests. Zero dependencies.**
+**Constitutional AI governance for autonomous agents. 482 tests. Zero dependencies.**
 
 ```bash
 npm install cord-engine
