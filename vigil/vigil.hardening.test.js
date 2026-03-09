@@ -19,7 +19,7 @@ describe('TokenBucket', () => {
   });
 
   test('consume reduces tokens', () => {
-    const bucket = new TokenBucket(10, 1);
+    const bucket = new TokenBucket(10, 0); // refillRate=0 for deterministic test
     expect(bucket.consume(5)).toBe(true);
     expect(bucket.getTokens()).toBe(5);
   });
