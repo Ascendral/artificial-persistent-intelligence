@@ -165,9 +165,9 @@ function readLastLine(filePath) {
   }
 }
 
-function getPrevHash() {
-  if (!fs.existsSync(LOG_PATH)) return "GENESIS";
-  const lastLine = readLastLine(LOG_PATH);
+function getPrevHash(logPath = LOG_PATH) {
+  if (!fs.existsSync(logPath)) return "GENESIS";
+  const lastLine = readLastLine(logPath);
   if (!lastLine) return "GENESIS";
 
   try {
@@ -181,7 +181,7 @@ function getPrevHash() {
 
 // ── Core Logger ──────────────────────────────────────────────────────────────
 
-function appendLog(entry) {
+function appendLog(entry, logPath = LOG_PATH) {
   // Redact sensitive fields
   const sanitized = { ...entry };
   if (sanitized.proposal) sanitized.proposal = redactPII(sanitized.proposal);
@@ -191,7 +191,7 @@ function appendLog(entry) {
 
   // Build hash-chained entry
   const timestamp = new Date().toISOString();
-  const prev_hash = getPrevHash();
+  const prev_hash = getPrevHash(logPath);
   const base = { timestamp, prev_hash, ...sanitized };
   const entry_hash = hashPayload(prev_hash + JSON.stringify(base));
   const logEntry = { ...base, entry_hash };
@@ -201,17 +201,17 @@ function appendLog(entry) {
     ? encryptEntry(JSON.stringify(logEntry))
     : JSON.stringify(logEntry);
 
-  fs.appendFileSync(LOG_PATH, line + "\n", "utf8");
+  fs.appendFileSync(logPath, line + "\n", "utf8");
   return entry_hash;
 }
 
 // ── Verification ─────────────────────────────────────────────────────────────
 
-function verifyChain() {
-  if (!fs.existsSync(LOG_PATH)) return { valid: true, entries: 0 };
+function verifyChain(logPath = LOG_PATH) {
+  if (!fs.existsSync(logPath)) return { valid: true, entries: 0 };
 
   const lines = fs
-    .readFileSync(LOG_PATH, "utf8")
+    .readFileSync(logPath, "utf8")
     .trim()
     .split("\n")
     .filter(Boolean);

@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * CORD Engine Live Demo
- * Watch AI attacks get blocked in real-time
+ * CORD Engine CLI
+ *   cord-engine [demo]        Live attack-blocking demo (default)
+ *   cord-engine anchor init   Generate/show the Ed25519 anchoring key
+ *   cord-engine verify [log]  Verify the audit chain against its anchors
  */
 
+const fs = require("fs");
+const path = require("path");
 const { evaluate } = require("../cord");
 const { vigil } = require("../vigil/vigil");
+const anchor = require("../cord/anchor");
+const { LOG_PATH } = require("../cord/logger");
 
 // Colors for terminal output
 const colors = {
@@ -47,7 +53,7 @@ async function showBanner() {
     colorize("│ 40 Attack Vectors → Watch Them All Get Blocked     │", "blue"),
   );
   console.log(
-    colorize("│ 942 Tests Passing → Fully Tested JS + Python       │", "blue"),
+    colorize("│ 505 JS + 460 Py Tests → Fully Tested               │", "blue"),
   );
   console.log(
     colorize("│ Zero Dependencies → Pure JavaScript + Python       │", "blue"),
@@ -367,8 +373,90 @@ process.on("SIGINT", () => {
   process.exit(0);
 });
 
+// ── anchor init ───────────────────────────────────────────────────────────────
+function cmdAnchorInit() {
+  const { publicKeyPem, created } = anchor.loadOrCreateKey();
+  const dir = anchor.ANCHOR_DIR_DEFAULT;
+  console.log(
+    colorize(created ? "🔑 Generated anchoring key" : "🔑 Anchoring key (existing)", "bold"),
+  );
+  console.log("   private: " + path.join(dir, "anchor.key") + colorize("  (0600, never leaves this machine)", "yellow"));
+  console.log("   public:  " + path.join(dir, "anchor.pub"));
+  console.log("\n" + publicKeyPem.trim());
+  console.log(
+    colorize("\nRegister this public key with the anchor service to start countersigning chain heads.", "cyan"),
+  );
+}
+
+// ── verify ────────────────────────────────────────────────────────────────────
+function loadLocalAnchors() {
+  // Anchors the service countersigned are stored as receipts locally. Until
+  // the service is wired, this file simply won't exist → NO ANCHORS (honest).
+  const p = path.join(anchor.ANCHOR_DIR_DEFAULT, "anchor.receipts.jsonl");
+  if (!fs.existsSync(p)) return [];
+  return fs
+    .readFileSync(p, "utf8")
+    .split("\n")
+    .filter(Boolean)
+    .map((l) => {
+      try {
+        return JSON.parse(l);
+      } catch {
+        return null;
+      }
+    })
+    .filter(Boolean);
+}
+
+function cmdVerify(logArg) {
+  const logPath = logArg || LOG_PATH;
+  if (!fs.existsSync(logPath)) {
+    console.log(colorize(`No audit log at ${logPath}`, "yellow"));
+    process.exit(1);
+  }
+  const anchors = loadLocalAnchors();
+  const r = anchor.verifyAgainstAnchors(logPath, anchors);
+  const color =
+    r.status === anchor.STATUS.VERIFIED
+      ? "green"
+      : r.status === anchor.STATUS.TAMPERED
+        ? "red"
+        : "yellow";
+  console.log(colorize(`\n  ${r.status}`, "bold"));
+  console.log(`  log:     ${logPath}`);
+  console.log(`  entries: ${r.entries}`);
+  console.log(`  anchors: ${r.anchorCount}` + (r.unanchoredTail ? `  (unanchored tail: ${r.unanchoredTail})` : ""));
+  for (const issue of r.issues) {
+    console.log(colorize(`  ✗ ${issue.type} ` + JSON.stringify(issue), color));
+  }
+  if (r.status === anchor.STATUS.NO_ANCHORS) {
+    console.log(
+      colorize("  Chain is internally consistent, but self-attested only — no external anchors yet.", "yellow"),
+    );
+  }
+  process.exit(r.status === anchor.STATUS.TAMPERED ? 2 : 0);
+}
+
+function dispatch() {
+  const [cmd, sub] = process.argv.slice(2);
+  switch (cmd) {
+    case "anchor":
+      if (sub === "init") return cmdAnchorInit();
+      console.log("usage: cord-engine anchor init");
+      return process.exit(1);
+    case "verify":
+      return cmdVerify(sub);
+    case undefined:
+    case "demo":
+      return main();
+    default:
+      console.log(`Unknown command: ${cmd}\nusage: cord-engine [demo|verify|anchor init]`);
+      return process.exit(1);
+  }
+}
+
 if (require.main === module) {
-  main();
+  dispatch();
 }
 
 module.exports = { main };

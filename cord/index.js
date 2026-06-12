@@ -203,4 +203,7 @@ module.exports = {
 
   // Logging
   LOG_PATH,
+
+  // Anchoring — zero-knowledge chain-head countersigning (client core)
+  anchor: require("./anchor"),
 };
