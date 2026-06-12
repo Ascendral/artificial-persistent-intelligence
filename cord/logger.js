@@ -26,19 +26,25 @@ let encryptionKey = process.env.CORD_LOG_KEY || null;
 
 function setRedactionLevel(level) {
   if (!["none", "pii", "full"].includes(level)) {
-    throw new Error(`Invalid redaction level: ${level}. Use "none", "pii", or "full".`);
+    throw new Error(
+      `Invalid redaction level: ${level}. Use "none", "pii", or "full".`,
+    );
   }
   redactionLevel = level;
 }
 
 function setEncryptionKey(key) {
   if (key && key.length !== 64) {
-    throw new Error("Encryption key must be a 64-character hex string (32 bytes).");
+    throw new Error(
+      "Encryption key must be a 64-character hex string (32 bytes).",
+    );
   }
   encryptionKey = key || null;
 }
 
-function getRedactionLevel() { return redactionLevel; }
+function getRedactionLevel() {
+  return redactionLevel;
+}
 
 // ── PII Redaction ────────────────────────────────────────────────────────────
 
@@ -48,7 +54,11 @@ function redactPII(text) {
   if (redactionLevel === "none") return text;
 
   if (redactionLevel === "full") {
-    const hash = crypto.createHash("sha256").update(text).digest("hex").slice(0, 16);
+    const hash = crypto
+      .createHash("sha256")
+      .update(text)
+      .digest("hex")
+      .slice(0, 16);
     return `${hash}...[redacted]`;
   }
 
@@ -88,7 +98,11 @@ function decryptEntry(entryStr, keyOverride) {
   if (!activeKey) return entryStr;
 
   let parsed;
-  try { parsed = JSON.parse(entryStr); } catch { return entryStr; }
+  try {
+    parsed = JSON.parse(entryStr);
+  } catch {
+    return entryStr;
+  }
   if (!parsed.encrypted) return entryStr;
 
   const key = Buffer.from(activeKey, "hex");
@@ -108,12 +122,54 @@ function hashPayload(payload) {
   return crypto.createHash("sha256").update(payload).digest("hex");
 }
 
+/**
+ * Read the last non-empty line of a file without loading the whole file.
+ *
+ * getPrevHash() only needs the final entry, but the audit log is
+ * append-only and unbounded — slurping it on every append made each
+ * write O(file size), so the log was O(n²) to build. We seek from the
+ * end and read backwards a chunk at a time until we have the last line.
+ *
+ * Newline (0x0A) never appears inside a UTF-8 multibyte sequence, so a
+ * byte-wise newline search is safe across chunk boundaries. Returns the
+ * exact same string the previous full-file read produced.
+ */
+function readLastLine(filePath) {
+  const CHUNK = 8192;
+  const fd = fs.openSync(filePath, "r");
+  try {
+    let pos = fs.fstatSync(fd).size;
+    if (pos === 0) return "";
+    let buf = Buffer.alloc(0);
+    while (pos > 0) {
+      const readSize = Math.min(CHUNK, pos);
+      pos -= readSize;
+      const chunk = Buffer.alloc(readSize);
+      fs.readSync(fd, chunk, 0, readSize, pos);
+      buf = Buffer.concat([chunk, buf]);
+
+      // Ignore trailing newline byte(s) at the very end of the file.
+      let end = buf.length;
+      while (end > 0 && buf[end - 1] === 0x0a) end--;
+      // Find the newline that begins the last line.
+      let start = end - 1;
+      for (; start >= 0; start--) {
+        if (buf[start] === 0x0a) break;
+      }
+      if (start >= 0) return buf.slice(start + 1, end).toString("utf8");
+      if (pos === 0) return buf.slice(0, end).toString("utf8");
+    }
+    return "";
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
 function getPrevHash() {
   if (!fs.existsSync(LOG_PATH)) return "GENESIS";
-  const data = fs.readFileSync(LOG_PATH, "utf8").trim();
-  if (!data) return "GENESIS";
+  const lastLine = readLastLine(LOG_PATH);
+  if (!lastLine) return "GENESIS";
 
-  const lastLine = data.split("\n").filter(Boolean).pop();
   try {
     const content = encryptionKey ? decryptEntry(lastLine) : lastLine;
     const parsed = JSON.parse(content);
@@ -130,7 +186,8 @@ function appendLog(entry) {
   const sanitized = { ...entry };
   if (sanitized.proposal) sanitized.proposal = redactPII(sanitized.proposal);
   if (sanitized.path) sanitized.path = redactPII(sanitized.path);
-  if (sanitized.networkTarget) sanitized.networkTarget = redactPII(sanitized.networkTarget);
+  if (sanitized.networkTarget)
+    sanitized.networkTarget = redactPII(sanitized.networkTarget);
 
   // Build hash-chained entry
   const timestamp = new Date().toISOString();
@@ -153,7 +210,11 @@ function appendLog(entry) {
 function verifyChain() {
   if (!fs.existsSync(LOG_PATH)) return { valid: true, entries: 0 };
 
-  const lines = fs.readFileSync(LOG_PATH, "utf8").trim().split("\n").filter(Boolean);
+  const lines = fs
+    .readFileSync(LOG_PATH, "utf8")
+    .trim()
+    .split("\n")
+    .filter(Boolean);
   let prevHash = "GENESIS";
   const errors = [];
 
@@ -183,5 +244,6 @@ module.exports = {
   setRedactionLevel,
   setEncryptionKey,
   getRedactionLevel,
+  readLastLine,
   LOG_PATH,
 };

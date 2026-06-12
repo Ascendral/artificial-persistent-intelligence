@@ -13,6 +13,7 @@ const {
   getRedactionLevel,
   appendLog,
   verifyChain,
+  readLastLine,
   LOG_PATH,
 } = require("./logger");
 
@@ -24,13 +25,74 @@ beforeEach(() => {
   setRedactionLevel("pii");
   setEncryptionKey(null);
   // Clean test log
-  try { fs.unlinkSync(TEST_LOG); } catch {}
+  try {
+    fs.unlinkSync(TEST_LOG);
+  } catch {}
 });
 
 afterAll(() => {
-  try { fs.unlinkSync(TEST_LOG); } catch {}
+  try {
+    fs.unlinkSync(TEST_LOG);
+  } catch {}
   setRedactionLevel("pii");
   setEncryptionKey(null);
+});
+
+describe("readLastLine() — O(1) tail read", () => {
+  const os = require("os");
+  let f;
+
+  afterEach(() => {
+    try {
+      fs.unlinkSync(f);
+    } catch {}
+  });
+
+  function write(content) {
+    f = path.join(os.tmpdir(), `cord-lastline-${Date.now()}-${Math.random()}`);
+    fs.writeFileSync(f, content);
+    return f;
+  }
+
+  test("returns the last line of a multi-line file with trailing newline", () => {
+    expect(readLastLine(write("a\nb\nc\n"))).toBe("c");
+  });
+
+  test("returns the last line without a trailing newline", () => {
+    expect(readLastLine(write("a\nb\nlast"))).toBe("last");
+  });
+
+  test("returns the only line of a single-line file", () => {
+    expect(readLastLine(write("solo\n"))).toBe("solo");
+  });
+
+  test("returns empty string for an empty file", () => {
+    expect(readLastLine(write(""))).toBe("");
+  });
+
+  test("ignores multiple trailing newlines", () => {
+    expect(readLastLine(write("x\ny\n\n\n"))).toBe("y");
+  });
+
+  test("reads a last line longer than the 8192-byte chunk", () => {
+    const big = "z".repeat(20000);
+    expect(readLastLine(write(`first\n${big}\n`))).toBe(big);
+  });
+
+  test("matches the old whole-file-read result across many lines", () => {
+    const lines = Array.from({ length: 5000 }, (_, i) =>
+      JSON.stringify({ n: i, entry_hash: `hash_${i}` }),
+    );
+    const file = write(lines.join("\n") + "\n");
+    const oldWay = fs
+      .readFileSync(file, "utf8")
+      .trim()
+      .split("\n")
+      .filter(Boolean)
+      .pop();
+    expect(readLastLine(file)).toBe(oldWay);
+    expect(JSON.parse(readLastLine(file)).entry_hash).toBe("hash_4999");
+  });
 });
 
 describe("redactPII()", () => {
@@ -98,7 +160,8 @@ describe("redactPII()", () => {
 });
 
 describe("encryptEntry() + decryptEntry()", () => {
-  const TEST_KEY = "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"; // 64 hex chars = 32 bytes
+  const TEST_KEY =
+    "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"; // 64 hex chars = 32 bytes
 
   test("encrypt then decrypt returns original", () => {
     const original = JSON.stringify({ decision: "ALLOW", score: 0 });
