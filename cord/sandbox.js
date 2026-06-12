@@ -22,35 +22,43 @@ const { execSync } = require("child_process");
 class SandboxedExecutor {
   constructor(options = {}) {
     this.repoRoot = path.resolve(options.repoRoot || process.cwd());
-    this.allowPaths = (options.allowPaths || [this.repoRoot]).map(p => path.resolve(p));
+    this.allowPaths = (options.allowPaths || [this.repoRoot]).map((p) =>
+      path.resolve(p),
+    );
     this.allowCommands = options.allowCommands || [];
-    this.maxOutputBytes = options.maxOutputBytes || 1024 * 1024;       // 1MB per file
+    this.maxOutputBytes = options.maxOutputBytes || 1024 * 1024; // 1MB per file
     this.maxNetworkBytes = options.maxNetworkBytes || 10 * 1024 * 1024; // 10MB per session
-    this.commandTimeout = options.commandTimeout || 30000;              // 30s
+    this.commandTimeout = options.commandTimeout || 30000; // 30s
     this.networkBytesUsed = 0;
 
     // Dangerous command patterns — always blocked regardless of allow-list
     this.blockedCommands = [
-      /rm\s+-rf\s+\//,           // root delete
-      /rm\s+-rf\s+~\//,          // home delete
-      /chmod\s+777/,              // world writable
-      /chmod\s+[0-7]*[67][0-7]{2}\s+\//,  // permissive root chmod
-      /curl.*\|\s*(ba)?sh/,       // pipe to shell
-      /wget.*\|\s*(ba)?sh/,       // pipe to shell
-      /nc\s+-[le]/,               // netcat listener
-      /mkfifo/,                   // named pipe (reverse shell)
-      />\s*\/dev\/tcp/,           // bash tcp redirect
+      /rm\s+-rf\s+\//, // root delete
+      /rm\s+-rf\s+~\//, // home delete
+      /chmod\s+777/, // world writable
+      /chmod\s+[0-7]*[67][0-7]{2}\s+\//, // permissive root chmod
+      /curl.*\|\s*(ba)?sh/, // pipe to shell
+      /wget.*\|\s*(ba)?sh/, // pipe to shell
+      /nc\s+-[le]/, // netcat listener
+      /mkfifo/, // named pipe (reverse shell)
+      />\s*\/dev\/tcp/, // bash tcp redirect
       /python.*-c\s*['"].*socket/, // python reverse shell
-      /eval\s*\(/,                // eval injection
-      /\bdd\s+if=\/dev/,          // disk destroyer
-      /:(){ :\|:& };:/,           // fork bomb
+      /eval\s*\(/, // eval injection
+      /\bdd\s+if=\/dev/, // disk destroyer
+      /:(){ :\|:& };:/, // fork bomb
     ];
 
     // System paths — always blocked even if inside allow scope
     this.blockedPaths = [
-      "/etc/shadow", "/etc/passwd", "/etc/sudoers",
-      "/.ssh", "/.gnupg", "/.aws/credentials",
-      "/proc/", "/sys/", "/dev/",
+      "/etc/shadow",
+      "/etc/passwd",
+      "/etc/sudoers",
+      "/.ssh",
+      "/.gnupg",
+      "/.aws/credentials",
+      "/proc/",
+      "/sys/",
+      "/dev/",
     ];
   }
 
@@ -65,8 +73,14 @@ class SandboxedExecutor {
       ? path.resolve(filePath)
       : path.resolve(this.repoRoot, filePath);
 
-    // Check against allow-list
-    const allowed = this.allowPaths.some(p => abs.startsWith(p));
+    // Check against allow-list.
+    // `abs.startsWith(dir)` matches sibling prefixes: "/tmp/project2"
+    // starts with "/tmp/project" even though the trees are unrelated.
+    // path.relative forces a true parent-child relationship.
+    const allowed = this.allowPaths.some((p) => {
+      const rel = path.relative(p, abs);
+      return !rel.startsWith("..") && !path.isAbsolute(rel);
+    });
     if (!allowed) {
       throw new Error(`SANDBOX: Path outside allowed scope: ${abs}`);
     }
@@ -79,9 +93,9 @@ class SandboxedExecutor {
     }
 
     // Prevent path traversal — verify at least one allowPath is a parent
-    const withinAnyAllowed = this.allowPaths.some(p => {
+    const withinAnyAllowed = this.allowPaths.some((p) => {
       const relative = path.relative(p, abs);
-      return !relative.startsWith("..");
+      return !relative.startsWith("..") && !path.isAbsolute(relative);
     });
     if (!withinAnyAllowed) {
       throw new Error(`SANDBOX: Path traversal detected: ${filePath}`);
@@ -100,20 +114,25 @@ class SandboxedExecutor {
     // Always check blocked patterns first
     for (const pattern of this.blockedCommands) {
       if (pattern.test(cmd)) {
-        throw new Error(`SANDBOX: Blocked dangerous command pattern: ${cmd.slice(0, 100)}`);
+        throw new Error(
+          `SANDBOX: Blocked dangerous command pattern: ${cmd.slice(0, 100)}`,
+        );
       }
     }
 
     // If allow-list is set, enforce it
     if (this.allowCommands.length > 0) {
-      const allowed = this.allowCommands.some(ac => {
+      const allowed = this.allowCommands.some((ac) => {
         if (ac instanceof RegExp) return ac.test(cmd);
-        if (ac && ac.__regex) return new RegExp(ac.__regex, ac.flags || "").test(cmd);
+        if (ac && ac.__regex)
+          return new RegExp(ac.__regex, ac.flags || "").test(cmd);
         if (typeof ac === "string") return cmd.startsWith(ac);
         return false;
       });
       if (!allowed) {
-        throw new Error(`SANDBOX: Command not in allow-list: ${cmd.slice(0, 100)}`);
+        throw new Error(
+          `SANDBOX: Command not in allow-list: ${cmd.slice(0, 100)}`,
+        );
       }
     }
 
@@ -132,7 +151,7 @@ class SandboxedExecutor {
 
     if (bytes > this.maxOutputBytes) {
       throw new Error(
-        `SANDBOX: Output exceeds ${this.maxOutputBytes} byte limit (got ${bytes})`
+        `SANDBOX: Output exceeds ${this.maxOutputBytes} byte limit (got ${bytes})`,
       );
     }
 
@@ -176,7 +195,7 @@ class SandboxedExecutor {
     this.networkBytesUsed += bytes;
     if (this.networkBytesUsed > this.maxNetworkBytes) {
       throw new Error(
-        `SANDBOX: Network quota exceeded (${this.networkBytesUsed}/${this.maxNetworkBytes} bytes)`
+        `SANDBOX: Network quota exceeded (${this.networkBytesUsed}/${this.maxNetworkBytes} bytes)`,
       );
     }
   }

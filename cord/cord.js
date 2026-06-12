@@ -17,7 +17,14 @@
  */
 
 const path = require("path");
-const { weights, thresholds, regex, highImpactVerbs, allowlistKeywords, toolRiskTiers } = require("./policies");
+const {
+  weights,
+  thresholds,
+  regex,
+  highImpactVerbs,
+  allowlistKeywords,
+  toolRiskTiers,
+} = require("./policies");
 const { appendLog } = require("./logger");
 const { loadIntentLock } = require("./intentLock");
 
@@ -87,7 +94,9 @@ function moralRisk(text = "") {
     return { score: 5, hardBlock: true };
   }
   const deceptionSignals = ["hide from", "cover up", "mislead", "fabricate"];
-  const hits = deceptionSignals.filter((s) => text.toLowerCase().includes(s)).length;
+  const hits = deceptionSignals.filter((s) =>
+    text.toLowerCase().includes(s),
+  ).length;
   const score = Math.min(hits * 2, 5);
   return { score, hardBlock: score >= 4 };
 }
@@ -130,14 +139,16 @@ function promptInjectionRisk(text = "") {
 function piiRisk(text = "", actionType = "") {
   if (!text) return 0;
   let score = 0;
-  if (regex.pii.ssn.test(text))        score += 2;
+  if (regex.pii.ssn.test(text)) score += 2;
   if (regex.pii.creditCard.test(text)) score += 2;
-  if (regex.pii.email.test(text))      score += 1;
-  if (regex.pii.phone.test(text))      score += 1;
-  if (regex.piiFieldNames.test(text))  score += 1.5;
+  if (regex.pii.email.test(text)) score += 1;
+  if (regex.pii.phone.test(text)) score += 1;
+  if (regex.piiFieldNames.test(text)) score += 1.5;
 
   // Amplify for outbound actions
-  const outbound = ["network", "communication", "file_op", "message"].includes(actionType);
+  const outbound = ["network", "communication", "file_op", "message"].includes(
+    actionType,
+  );
   if (score > 0 && outbound) score *= 1.5;
 
   return Math.min(score, 5);
@@ -198,7 +209,15 @@ function financialRisk(text = "", actionType = "") {
 function networkTargetRisk(target = "") {
   if (!target) return 0;
   const lower = target.toLowerCase();
-  const suspiciousWords = ["evil", "malicious", "hack", "attacker", "phish", "exploit", "steal"];
+  const suspiciousWords = [
+    "evil",
+    "malicious",
+    "hack",
+    "attacker",
+    "phish",
+    "exploit",
+    "steal",
+  ];
   const hits = suspiciousWords.filter((w) => lower.includes(w)).length;
   if (hits > 0) return Math.min(2 + hits, 5);
   // Raw IP address
@@ -212,31 +231,36 @@ function networkTargetRisk(target = "") {
 
 // ── Scoring ──────────────────────────────────────────────────────────────────
 
-function scoreProposal({ text = "", proposal = "", grants = [], sessionIntent = "" }) {
+function scoreProposal({
+  text = "",
+  proposal = "",
+  grants = [],
+  sessionIntent = "",
+}) {
   const base = {
-    injection:      injectionRisk(text || proposal),
-    exfil:          exfilRisk(text || proposal),
-    privilege:      privilegeRisk(proposal, grants),
-    intentDrift:    intentDriftRisk(proposal, sessionIntent),
+    injection: injectionRisk(text || proposal),
+    exfil: exfilRisk(text || proposal),
+    privilege: privilegeRisk(proposal, grants),
+    intentDrift: intentDriftRisk(proposal, sessionIntent),
     irreversibility: irreversibilityRisk(proposal),
   };
   base.anomaly = anomalyRisk(base);
 
   const weighted =
-    base.injection      * weights.injection +
-    base.exfil          * weights.exfil +
-    base.privilege      * weights.privilege +
-    base.intentDrift    * weights.intentDrift +
+    base.injection * weights.injection +
+    base.exfil * weights.exfil +
+    base.privilege * weights.privilege +
+    base.intentDrift * weights.intentDrift +
     base.irreversibility * weights.irreversibility +
-    base.anomaly        * weights.anomaly;
+    base.anomaly * weights.anomaly;
 
   return { risks: base, score: weighted };
 }
 
 function decide(score) {
-  if (score >= thresholds.block)     return "BLOCK";
+  if (score >= thresholds.block) return "BLOCK";
   if (score >= thresholds.challenge) return "CHALLENGE";
-  if (score >= thresholds.contain)   return "CONTAIN";
+  if (score >= thresholds.contain) return "CONTAIN";
   return "ALLOW";
 }
 
@@ -251,9 +275,16 @@ function ensureIntentLock() {
 function isPathAllowed(targetPath, scope, repoRoot) {
   if (!targetPath) return true;
   const abs = path.resolve(targetPath);
-  if (!abs.startsWith(repoRoot)) return false;
+  // `abs.startsWith(dir)` matches sibling prefixes: "/tmp/project2"
+  // starts with "/tmp/project" even though the trees are unrelated.
+  // path.relative forces a true parent-child relationship.
+  const relToRoot = path.relative(repoRoot, abs);
+  if (relToRoot.startsWith("..") || path.isAbsolute(relToRoot)) return false;
   if (!scope?.allowPaths || scope.allowPaths.length === 0) return false;
-  return scope.allowPaths.some((p) => abs.startsWith(path.resolve(p)));
+  return scope.allowPaths.some((p) => {
+    const rel = path.relative(path.resolve(p), abs);
+    return !rel.startsWith("..") && !path.isAbsolute(rel);
+  });
 }
 
 function isNetworkAllowed(target = "", scope) {
@@ -267,7 +298,8 @@ function isCommandAllowed(proposal = "", scope) {
   if (!scope?.allowCommands || scope.allowCommands.length === 0) return false;
   return scope.allowCommands.some((pattern) => {
     if (pattern instanceof RegExp) return pattern.test(proposal);
-    if (pattern?.__regex) return new RegExp(pattern.__regex, pattern.flags || "").test(proposal);
+    if (pattern?.__regex)
+      return new RegExp(pattern.__regex, pattern.flags || "").test(proposal);
     if (typeof pattern === "string") return proposal.includes(pattern);
     return false;
   });
@@ -297,7 +329,9 @@ function evaluateProposal(input = {}) {
   const repoRoot = path.resolve(__dirname, "..");
   const text = input.proposal || input.text || "";
   const rawInput = input.rawInput || "";
-  const scanText = [text, rawInput, input.networkTarget].filter(Boolean).join(" ");
+  const scanText = [text, rawInput, input.networkTarget]
+    .filter(Boolean)
+    .join(" ");
 
   const { lock, intentIssue } = ensureIntentLock();
 
@@ -314,17 +348,26 @@ function evaluateProposal(input = {}) {
     // Phase 0a: Proactive input pre-screen (indirect injection in rawInput)
     if (rawInput && v.proactive) {
       try {
-        proactiveResult = v.scanInput(rawInput, input.inputSource || "rawInput");
+        proactiveResult = v.scanInput(
+          rawInput,
+          input.inputSource || "rawInput",
+        );
       } catch (e) {
         proactiveResult = null;
       }
 
       if (proactiveResult && proactiveResult.decision === "BLOCK") {
-        const reasons = ["VIGIL INDIRECT INJECTION — " + (proactiveResult.summary || "poisoned input detected")];
+        const reasons = [
+          "VIGIL INDIRECT INJECTION — " +
+            (proactiveResult.summary || "poisoned input detected"),
+        ];
         const log_id = appendLog({
           decision: "BLOCK",
           score: 99,
-          risks: { indirectInjection: true, indirectSeverity: proactiveResult.severity },
+          risks: {
+            indirectInjection: true,
+            indirectSeverity: proactiveResult.severity,
+          },
           reasons,
           proposal: text,
           path: input.path || null,
@@ -332,10 +375,15 @@ function evaluateProposal(input = {}) {
           hardBlock: true,
         });
         return {
-          decision: "BLOCK", score: 99,
-          risks: { indirectInjection: true, indirectSeverity: proactiveResult.severity },
+          decision: "BLOCK",
+          score: 99,
+          risks: {
+            indirectInjection: true,
+            indirectSeverity: proactiveResult.severity,
+          },
           reasons,
-          hardBlock: true, log_id,
+          hardBlock: true,
+          log_id,
           vigilResult: null,
           proactiveResult,
         };
@@ -351,7 +399,9 @@ function evaluateProposal(input = {}) {
     }
 
     if (vigilResult && vigilResult.decision === "BLOCK") {
-      const reasons = ["VIGIL BLOCK — " + (vigilResult.summary || "critical threat detected")];
+      const reasons = [
+        "VIGIL BLOCK — " + (vigilResult.summary || "critical threat detected"),
+      ];
       if (vigilResult.escalatedBy === "memory") {
         reasons.push("Escalated by behavioral memory (cross-turn pattern)");
       }
@@ -366,10 +416,12 @@ function evaluateProposal(input = {}) {
         hardBlock: true,
       });
       return {
-        decision: "BLOCK", score: 99,
+        decision: "BLOCK",
+        score: 99,
         risks: { vigilBlock: true, vigilSeverity: vigilResult.severity },
         reasons,
-        hardBlock: true, log_id,
+        hardBlock: true,
+        log_id,
         vigilResult,
       };
     }
@@ -391,10 +443,12 @@ function evaluateProposal(input = {}) {
       hardBlock: true,
     });
     return {
-      decision: "BLOCK", score: 99,
+      decision: "BLOCK",
+      score: 99,
       risks: { moralCheck: 5 },
       reasons: ["HARD BLOCK — moral violation (Article II)"],
-      hardBlock: true, log_id,
+      hardBlock: true,
+      log_id,
     };
   }
 
@@ -411,10 +465,12 @@ function evaluateProposal(input = {}) {
       hardBlock: true,
     });
     return {
-      decision: "BLOCK", score: 99,
+      decision: "BLOCK",
+      score: 99,
       risks: { driftCheck: 5 },
       reasons: ["HARD BLOCK — protocol drift attempt (Protocol VIII)"],
-      hardBlock: true, log_id,
+      hardBlock: true,
+      log_id,
     };
   }
 
@@ -431,10 +487,12 @@ function evaluateProposal(input = {}) {
       hardBlock: true,
     });
     return {
-      decision: "BLOCK", score: 99,
+      decision: "BLOCK",
+      score: 99,
       risks: { promptInjection: 5 },
       reasons: ["HARD BLOCK — prompt injection attempt (Article VII)"],
-      hardBlock: true, log_id,
+      hardBlock: true,
+      log_id,
     };
   }
 
@@ -449,22 +507,22 @@ function evaluateProposal(input = {}) {
 
   // Additional v3 dimensions
   const v3Risks = {
-    moralCheck:      moral.score,
+    moralCheck: moral.score,
     promptInjection: injection.score,
-    piiLeakage:      piiRisk(scanText, input.actionType || ""),
-    identityCheck:   identityRisk(scanText),
-    toolRisk:        toolRisk(input.toolName || ""),
-    financialRisk:   financialRisk(scanText, input.actionType || ""),
+    piiLeakage: piiRisk(scanText, input.actionType || ""),
+    identityCheck: identityRisk(scanText),
+    toolRisk: toolRisk(input.toolName || ""),
+    financialRisk: financialRisk(scanText, input.actionType || ""),
     networkTargetRisk: networkTargetRisk(input.networkTarget || ""),
   };
 
   const v3Score =
-    v3Risks.moralCheck      * weights.moralCheck +
+    v3Risks.moralCheck * weights.moralCheck +
     v3Risks.promptInjection * weights.promptInjection +
-    v3Risks.piiLeakage      * weights.piiLeakage +
-    v3Risks.identityCheck   * weights.identityCheck +
-    v3Risks.toolRisk        * weights.toolRisk +
-    v3Risks.financialRisk   * (weights.financialRisk || 4) +
+    v3Risks.piiLeakage * weights.piiLeakage +
+    v3Risks.identityCheck * weights.identityCheck +
+    v3Risks.toolRisk * weights.toolRisk +
+    v3Risks.financialRisk * (weights.financialRisk || 4) +
     v3Risks.networkTargetRisk * (weights.networkTargetRisk || 3);
 
   let totalScore = baseScore + v3Score;
@@ -499,9 +557,15 @@ function evaluateProposal(input = {}) {
 
   // Phase 2c: Proactive score amplification
   // If indirect injection was detected but not blocked (CHALLENGE), amplify
-  if (proactiveResult && !proactiveResult.clean && proactiveResult.decision === "CHALLENGE") {
+  if (
+    proactiveResult &&
+    !proactiveResult.clean &&
+    proactiveResult.decision === "CHALLENGE"
+  ) {
     totalScore += proactiveResult.severity * 0.3;
-    reasons.push(`Indirect injection detected in input (severity ${proactiveResult.severity})`);
+    reasons.push(
+      `Indirect injection detected in input (severity ${proactiveResult.severity})`,
+    );
     allRisks.indirectInjection = proactiveResult.severity;
     decision = decide(totalScore);
   }
@@ -517,8 +581,14 @@ function evaluateProposal(input = {}) {
 
   if (lock?.scope) {
     const scope = lock.scope;
-    const pathAllowed    = isPathAllowed(input.path || input.targetPath, scope, repoRoot);
-    const networkAllowed = input.networkTarget ? isNetworkAllowed(input.networkTarget, scope) : true;
+    const pathAllowed = isPathAllowed(
+      input.path || input.targetPath,
+      scope,
+      repoRoot,
+    );
+    const networkAllowed = input.networkTarget
+      ? isNetworkAllowed(input.networkTarget, scope)
+      : true;
     const commandAllowed = isCommandAllowed(text, scope);
 
     if (!pathAllowed || !networkAllowed || !commandAllowed) {
@@ -539,9 +609,17 @@ function evaluateProposal(input = {}) {
     networkTarget: input.networkTarget || null,
   });
 
-  const verdict = { decision, score: totalScore, risks: allRisks, reasons, hardBlock: false, log_id };
+  const verdict = {
+    decision,
+    score: totalScore,
+    risks: allRisks,
+    reasons,
+    hardBlock: false,
+    log_id,
+  };
   if (vigilResult) verdict.vigilResult = vigilResult;
-  if (proactiveResult && !proactiveResult.clean) verdict.proactiveResult = proactiveResult;
+  if (proactiveResult && !proactiveResult.clean)
+    verdict.proactiveResult = proactiveResult;
   return verdict;
 }
 
@@ -615,10 +693,13 @@ function explain(verdict) {
   });
 
   const prefix =
-    verdict.decision === "BLOCK"    ? "Blocked" :
-    verdict.decision === "CHALLENGE" ? "Needs approval" :
-    verdict.decision === "CONTAIN"  ? "Approved with monitoring" :
-    "Approved";
+    verdict.decision === "BLOCK"
+      ? "Blocked"
+      : verdict.decision === "CHALLENGE"
+        ? "Needs approval"
+        : verdict.decision === "CONTAIN"
+          ? "Approved with monitoring"
+          : "Approved";
 
   if (verdict.hardBlock) {
     return lines[0]; // Hard blocks have a single, clear explanation
@@ -666,61 +747,82 @@ function validatePlan(tasks = [], sessionIntent = "") {
   // 1. Concatenate all task descriptions → run as single CORD proposal
   //    Use scoreProposal (not evaluateProposal) to avoid scope/intent-lock
   //    enforcement on the aggregate text — scope checks happen per-task later.
-  const combinedText = tasks.map((t) => {
-    const desc = typeof t === "string" ? t : (t.description || t.text || "");
-    return desc;
-  }).join("\n");
+  const combinedText = tasks
+    .map((t) => {
+      const desc = typeof t === "string" ? t : t.description || t.text || "";
+      return desc;
+    })
+    .join("\n");
 
   // Run hard-block checks first (moral, drift, prompt injection)
   const moral = moralRisk(combinedText);
   if (moral.hardBlock) {
     return {
-      decision: "BLOCK", score: 99, reasons: ["HARD BLOCK — moral violation (Article II)"],
-      risks: { moralCheck: 5 }, hardBlock: true, planLevel: true, taskCount: tasks.length,
+      decision: "BLOCK",
+      score: 99,
+      reasons: ["HARD BLOCK — moral violation (Article II)"],
+      risks: { moralCheck: 5 },
+      hardBlock: true,
+      planLevel: true,
+      taskCount: tasks.length,
     };
   }
   const drift = driftRisk(combinedText);
   if (drift.hardBlock) {
     return {
-      decision: "BLOCK", score: 99, reasons: ["HARD BLOCK — protocol drift attempt (Protocol VIII)"],
-      risks: { driftCheck: 5 }, hardBlock: true, planLevel: true, taskCount: tasks.length,
+      decision: "BLOCK",
+      score: 99,
+      reasons: ["HARD BLOCK — protocol drift attempt (Protocol VIII)"],
+      risks: { driftCheck: 5 },
+      hardBlock: true,
+      planLevel: true,
+      taskCount: tasks.length,
     };
   }
   const injection = promptInjectionRisk(combinedText);
   if (injection.hardBlock) {
     return {
-      decision: "BLOCK", score: 99, reasons: ["HARD BLOCK — prompt injection attempt (Article VII)"],
-      risks: { promptInjection: 5 }, hardBlock: true, planLevel: true, taskCount: tasks.length,
+      decision: "BLOCK",
+      score: 99,
+      reasons: ["HARD BLOCK — prompt injection attempt (Article VII)"],
+      risks: { promptInjection: 5 },
+      hardBlock: true,
+      planLevel: true,
+      taskCount: tasks.length,
     };
   }
 
   // Scored risk checks on combined text — plan-relevant dimensions only.
   // Intentionally skips intentDrift and irreversibility, which produce false
   // positives on high-level task descriptions that don't match intent verbatim.
-  const allGrants = tasks.flatMap((t) => typeof t === "string" ? [] : (t.grants || []));
+  const allGrants = tasks.flatMap((t) =>
+    typeof t === "string" ? [] : t.grants || [],
+  );
   const planRisks = {
-    injection:       injectionRisk(combinedText),
-    exfil:           exfilRisk(combinedText),
-    privilege:       privilegeRisk(combinedText, allGrants),
-    moralCheck:      moral.score,
+    injection: injectionRisk(combinedText),
+    exfil: exfilRisk(combinedText),
+    privilege: privilegeRisk(combinedText, allGrants),
+    moralCheck: moral.score,
     promptInjection: injection.score,
-    piiLeakage:      piiRisk(combinedText, ""),
-    identityCheck:   identityRisk(combinedText),
-    financialRisk:   financialRisk(combinedText, ""),
+    piiLeakage: piiRisk(combinedText, ""),
+    identityCheck: identityRisk(combinedText),
+    financialRisk: financialRisk(combinedText, ""),
     networkTargetRisk: 0, // checked per-task in step 2 below
   };
 
   let planScore =
-    planRisks.injection       * weights.injection +
-    planRisks.exfil           * weights.exfil +
-    planRisks.privilege       * weights.privilege +
-    planRisks.moralCheck      * weights.moralCheck +
+    planRisks.injection * weights.injection +
+    planRisks.exfil * weights.exfil +
+    planRisks.privilege * weights.privilege +
+    planRisks.moralCheck * weights.moralCheck +
     planRisks.promptInjection * weights.promptInjection +
-    planRisks.piiLeakage      * weights.piiLeakage +
-    planRisks.identityCheck   * weights.identityCheck +
-    planRisks.financialRisk   * (weights.financialRisk || 4);
+    planRisks.piiLeakage * weights.piiLeakage +
+    planRisks.identityCheck * weights.identityCheck +
+    planRisks.financialRisk * (weights.financialRisk || 4);
 
-  const planReasons = Object.entries(planRisks).filter(([, v]) => v > 0).map(([k]) => k);
+  const planReasons = Object.entries(planRisks)
+    .filter(([, v]) => v > 0)
+    .map(([k]) => k);
 
   // 2. Check cumulative network exposure
   const allNetworkTargets = tasks.flatMap((t) => {
@@ -730,7 +832,9 @@ function validatePlan(tasks = [], sessionIntent = "") {
   const uniqueTargets = [...new Set(allNetworkTargets)];
   if (uniqueTargets.length >= 3) {
     planScore += 2;
-    planReasons.push(`Plan contacts ${uniqueTargets.length} unique network targets`);
+    planReasons.push(
+      `Plan contacts ${uniqueTargets.length} unique network targets`,
+    );
   }
 
   // 3. Check privilege escalation chain (uses allGrants from risk checks above)
@@ -741,13 +845,15 @@ function validatePlan(tasks = [], sessionIntent = "") {
   }
 
   // 4. Check cross-task data flow (write → read → exfil pattern)
-  const writePaths = tasks.filter((t) => {
-    if (typeof t === "string") return false;
-    return t.type === "code" || t.type === "write";
-  }).flatMap((t) => t.filePaths || []);
+  const writePaths = tasks
+    .filter((t) => {
+      if (typeof t === "string") return false;
+      return t.type === "code" || t.type === "write";
+    })
+    .flatMap((t) => t.filePaths || []);
 
   const hasReadTasks = tasks.some((t) => {
-    const desc = typeof t === "string" ? t : (t.description || "");
+    const desc = typeof t === "string" ? t : t.description || "";
     return /read|load|import|require|parse|open/i.test(desc);
   });
 

@@ -43,6 +43,12 @@ class SessionMemory {
     // Map of sessionId -> session data
     this.sessions = new Map();
 
+    // Monotonic counter for auto-generated session IDs. Date.now() alone
+    // has millisecond resolution — two startSession() calls in the same
+    // millisecond would collide and silently resurrect the previous
+    // session's threat memory instead of starting fresh.
+    this._sessionSeq = 0;
+
     // Start cleanup timer
     this.startCleanupTimer();
   }
@@ -93,7 +99,8 @@ class SessionMemory {
 
     // Update category frequency
     for (const cat of turn.categories) {
-      session.categoryFrequency[cat] = (session.categoryFrequency[cat] || 0) + 1;
+      session.categoryFrequency[cat] =
+        (session.categoryFrequency[cat] || 0) + 1;
     }
 
     // Update last activity
@@ -111,7 +118,7 @@ class SessionMemory {
       return {
         sessionScore: 0,
         messageCount: 0,
-        riskTrend: 'neutral',
+        riskTrend: "neutral",
         escalating: false,
       };
     }
@@ -133,16 +140,16 @@ class SessionMemory {
     const escalating = this.isEscalating(sessionId);
 
     // Determine trend
-    let riskTrend = 'neutral';
+    let riskTrend = "neutral";
     if (len >= 3) {
       const recent = turns.slice(-3);
       const firstSev = recent[0].severity;
       const lastSev = recent[2].severity;
 
       if (lastSev > firstSev + 1) {
-        riskTrend = 'increasing';
+        riskTrend = "increasing";
       } else if (lastSev < firstSev - 1) {
-        riskTrend = 'decreasing';
+        riskTrend = "decreasing";
       }
     }
 
@@ -211,7 +218,7 @@ class SessionMemory {
     const session = sid ? this.sessions.get(sid) : null;
 
     const empty = {
-      pattern: 'none',
+      pattern: "none",
       confidence: 0,
       recommendation: null,
       evidence: [],
@@ -220,7 +227,7 @@ class SessionMemory {
     if (!session || session.turns.length < 3) return empty;
 
     const turns = session.turns;
-    const severities = turns.map(t => t.severity);
+    const severities = turns.map((t) => t.severity);
     const len = severities.length;
 
     // ── 1. Sudden spike — checked first (takes priority over slow_burn) ───
@@ -232,13 +239,13 @@ class SessionMemory {
       if (historyAvg <= 1 && last >= 7) {
         const confidence = Math.min(90, 50 + last * 5);
         return {
-          pattern: 'sudden_spike',
+          pattern: "sudden_spike",
           confidence,
-          recommendation: 'BLOCK',
+          recommendation: "BLOCK",
           evidence: [
             `History average severity: ${historyAvg.toFixed(1)} — appeared clean`,
             `Current turn severity: ${last} — sudden critical threat`,
-            'Pattern matches sleeper or delayed injection attack',
+            "Pattern matches sleeper or delayed injection attack",
           ],
         };
       }
@@ -248,20 +255,20 @@ class SessionMemory {
     if (len >= 4) {
       const recent = severities.slice(-4);
       const diffs = recent.slice(1).map((v, i) => v - recent[i]);
-      const allPositive = diffs.every(d => d >= 0);
-      const anyIncrease = diffs.some(d => d > 0);
+      const allPositive = diffs.every((d) => d >= 0);
+      const anyIncrease = diffs.some((d) => d > 0);
       const totalRise = recent[recent.length - 1] - recent[0];
 
       if (allPositive && anyIncrease && totalRise >= 2) {
         const confidence = Math.min(95, 40 + totalRise * 10 + len * 2);
         return {
-          pattern: 'slow_burn',
+          pattern: "slow_burn",
           confidence,
-          recommendation: confidence >= 70 ? 'BLOCK' : 'CHALLENGE',
+          recommendation: confidence >= 70 ? "BLOCK" : "CHALLENGE",
           evidence: [
             `Severity rose ${totalRise} points over last ${len} turns`,
-            `Trajectory: [${recent.join(' → ')}]`,
-            'Pattern matches recon-then-exploit attack vector',
+            `Trajectory: [${recent.join(" → ")}]`,
+            "Pattern matches recon-then-exploit attack vector",
           ],
         };
       }
@@ -270,23 +277,31 @@ class SessionMemory {
     // ── 2. Trust building — alternating clean/risky ────────────────────────
     if (len >= 4) {
       const recent = turns.slice(-6);
-      const cleanTurns = recent.filter(t => t.severity === 0).length;
-      const riskyTurns = recent.filter(t => t.severity > 0).length;
+      const cleanTurns = recent.filter((t) => t.severity === 0).length;
+      const riskyTurns = recent.filter((t) => t.severity > 0).length;
       const lastTurn = recent[recent.length - 1];
-      const alternating = recent.slice(1).some((t, i) =>
-        (recent[i].severity === 0) !== (t.severity === 0)
-      );
+      const alternating = recent
+        .slice(1)
+        .some((t, i) => (recent[i].severity === 0) !== (t.severity === 0));
 
-      if (cleanTurns >= 2 && riskyTurns >= 2 && alternating && lastTurn.severity > 2) {
-        const confidence = Math.min(85, 30 + riskyTurns * 10 + lastTurn.severity * 5);
+      if (
+        cleanTurns >= 2 &&
+        riskyTurns >= 2 &&
+        alternating &&
+        lastTurn.severity > 2
+      ) {
+        const confidence = Math.min(
+          85,
+          30 + riskyTurns * 10 + lastTurn.severity * 5,
+        );
         return {
-          pattern: 'trust_building',
+          pattern: "trust_building",
           confidence,
-          recommendation: confidence >= 65 ? 'CHALLENGE' : null,
+          recommendation: confidence >= 65 ? "CHALLENGE" : null,
           evidence: [
             `${cleanTurns} clean turns interspersed with ${riskyTurns} risky turns`,
             `Last turn severity: ${lastTurn.severity}`,
-            'Pattern matches trust-then-exploit social engineering',
+            "Pattern matches trust-then-exploit social engineering",
           ],
         };
       }
@@ -295,19 +310,19 @@ class SessionMemory {
     // ── 3. Persistence — repeated low-severity attempts ────────────────────
     if (len >= 5) {
       const recent = severities.slice(-5);
-      const allLow = recent.every(s => s > 0 && s <= 3);
-      const count = recent.filter(s => s > 0).length;
+      const allLow = recent.every((s) => s > 0 && s <= 3);
+      const count = recent.filter((s) => s > 0).length;
 
       if (allLow && count >= 4) {
         const confidence = Math.min(80, 20 + count * 10 + len * 2);
         return {
-          pattern: 'persistence',
+          pattern: "persistence",
           confidence,
-          recommendation: confidence >= 60 ? 'CHALLENGE' : null,
+          recommendation: confidence >= 60 ? "CHALLENGE" : null,
           evidence: [
             `${count} consecutive low-severity attempts`,
             `Sustained score range: [${Math.min(...recent)}–${Math.max(...recent)}]`,
-            'Pattern matches brute-force / slow-probe attack',
+            "Pattern matches brute-force / slow-probe attack",
           ],
         };
       }
@@ -315,21 +330,19 @@ class SessionMemory {
 
     // ── 4. Recon sweep — multiple distinct threat categories ───────────────
     if (len >= 3) {
-      const uniqueCategories = new Set(
-        turns.flatMap(t => t.categories)
-      );
+      const uniqueCategories = new Set(turns.flatMap((t) => t.categories));
       const categoryCount = uniqueCategories.size;
-      const hasRiskyTurns = turns.some(t => t.severity > 0);
+      const hasRiskyTurns = turns.some((t) => t.severity > 0);
 
       if (categoryCount >= 3 && hasRiskyTurns) {
         const confidence = Math.min(75, 20 + categoryCount * 15);
         return {
-          pattern: 'recon_sweep',
+          pattern: "recon_sweep",
           confidence,
-          recommendation: confidence >= 60 ? 'CHALLENGE' : null,
+          recommendation: confidence >= 60 ? "CHALLENGE" : null,
           evidence: [
-            `${categoryCount} distinct threat categories probed: ${[...uniqueCategories].join(', ')}`,
-            'Multiple category hits suggest systematic capability mapping',
+            `${categoryCount} distinct threat categories probed: ${[...uniqueCategories].join(", ")}`,
+            "Multiple category hits suggest systematic capability mapping",
           ],
         };
       }
@@ -363,9 +376,12 @@ class SessionMemory {
    * Start automatic cleanup timer
    */
   startCleanupTimer() {
-    this.cleanupTimer = setInterval(() => {
-      this.cleanupExpiredSessions();
-    }, 5 * 60 * 1000); // Every 5 minutes
+    this.cleanupTimer = setInterval(
+      () => {
+        this.cleanupExpiredSessions();
+      },
+      5 * 60 * 1000,
+    ); // Every 5 minutes
 
     // Don't keep process alive
     if (this.cleanupTimer.unref) {
@@ -404,7 +420,8 @@ class SessionMemory {
    * @param {string} [sessionId]
    */
   startSession(sessionId) {
-    this._activeSessionId = sessionId || `vigil_${Date.now()}`;
+    this._activeSessionId =
+      sessionId || `vigil_${Date.now()}_${++this._sessionSeq}`;
     // Pre-create via _getOrCreateSession
     this._getOrCreateSession(this._activeSessionId);
   }
@@ -475,10 +492,10 @@ class SessionMemory {
     const trajectory = this.analyzeTrajectory(this._activeSessionId);
 
     // Trajectory can upgrade recommendation
-    if (trajectory.recommendation === 'BLOCK' && recommendation !== 'BLOCK') {
-      recommendation = 'BLOCK';
-    } else if (trajectory.recommendation === 'CHALLENGE' && !recommendation) {
-      recommendation = 'CHALLENGE';
+    if (trajectory.recommendation === "BLOCK" && recommendation !== "BLOCK") {
+      recommendation = "BLOCK";
+    } else if (trajectory.recommendation === "CHALLENGE" && !recommendation) {
+      recommendation = "CHALLENGE";
     }
 
     return {
@@ -497,7 +514,9 @@ class SessionMemory {
    */
   getSummary() {
     const assessment = this.assess();
-    const session = this._activeSessionId ? this.sessions.get(this._activeSessionId) : null;
+    const session = this._activeSessionId
+      ? this.sessions.get(this._activeSessionId)
+      : null;
     return {
       sessionId: this._activeSessionId,
       startedAt: session ? session.startedAt : null,
@@ -529,8 +548,8 @@ const sessionMemory = new SessionMemory();
  * @returns {object} — Enhanced scan result with session context
  */
 function evaluateWithMemory(sessionId, text) {
-  const normalizer = require('./normalizer');
-  const scanner = require('./scanner');
+  const normalizer = require("./normalizer");
+  const scanner = require("./scanner");
 
   // Generate sessionId if not provided
   if (!sessionId) {
@@ -552,9 +571,9 @@ function evaluateWithMemory(sessionId, text) {
 
     // Re-evaluate decision with increased severity
     if (finalResult.severity >= 6) {
-      finalResult.decision = 'BLOCK';
+      finalResult.decision = "BLOCK";
     } else if (finalResult.severity > 2) {
-      finalResult.decision = 'CHALLENGE';
+      finalResult.decision = "CHALLENGE";
     }
 
     // Update summary
@@ -572,17 +591,22 @@ function evaluateWithMemory(sessionId, text) {
   // If 3+ messages with severity > 0, check for escalation
   const session = sessionMemory.sessions.get(sessionId);
   if (session) {
-    const elevatedCount = session.turns.filter(t => t.severity > 0).length;
+    const elevatedCount = session.turns.filter((t) => t.severity > 0).length;
 
     // Example: 3 messages each scoring 4 (CHALLENGE individually) → session escalation → BLOCK
     if (elevatedCount >= 3) {
       // Calculate average severity of elevated messages
-      const elevatedTurns = session.turns.filter(t => t.severity > 0);
-      const avgSeverity = elevatedTurns.reduce((sum, t) => sum + t.severity, 0) / elevatedTurns.length;
+      const elevatedTurns = session.turns.filter((t) => t.severity > 0);
+      const avgSeverity =
+        elevatedTurns.reduce((sum, t) => sum + t.severity, 0) /
+        elevatedTurns.length;
 
       // If escalating OR average severity crosses threshold
-      if (cumulativeRisk.escalating || (avgSeverity >= 4 && elevatedCount >= 3)) {
-        finalResult.decision = 'BLOCK';
+      if (
+        cumulativeRisk.escalating ||
+        (avgSeverity >= 4 && elevatedCount >= 3)
+      ) {
+        finalResult.decision = "BLOCK";
         finalResult.severity = Math.min(10, finalResult.severity + 2);
         finalResult.summary = `SESSION ESCALATION: ${finalResult.summary}`;
         finalResult.escalated = true;
