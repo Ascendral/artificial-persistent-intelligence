@@ -233,10 +233,10 @@ class ProactiveScanner {
 
     // Calculate severity
     const indirectCount = threats.filter(
-      (t) => t.category === "indirectInjection"
+      (t) => t.category === "indirectInjection",
     ).length;
     const standardCount = threats.filter(
-      (t) => t.category !== "indirectInjection"
+      (t) => t.category !== "indirectInjection",
     ).length;
     const severity =
       threats.length === 0
@@ -245,7 +245,7 @@ class ProactiveScanner {
             10,
             indirectCount * 4 +
               standardCount * 3 +
-              (normResult.wasObfuscated ? 2 : 0)
+              (normResult.wasObfuscated ? 2 : 0),
           );
 
     // Decision
@@ -256,7 +256,7 @@ class ProactiveScanner {
           t.category === "indirectInjection" ||
           t.category === "emergingThreat" ||
           t.category === "injection" ||
-          t.category === "exfil"
+          t.category === "exfil",
       )
     ) {
       decision = "BLOCK";
@@ -524,12 +524,14 @@ class ProactiveScanner {
       if (tracker.currentPhase === ATTACK_PHASES.RECONNAISSANCE) {
         predictedLevel = THREAT_LEVELS.ELEVATED;
         thresholdAdjustment -= 1;
-        reasoning.push("Reconnaissance activity detected — lowering thresholds");
+        reasoning.push(
+          "Reconnaissance activity detected — lowering thresholds",
+        );
       } else if (tracker.currentPhase === ATTACK_PHASES.PROBING) {
         predictedLevel = THREAT_LEVELS.HIGH;
         thresholdAdjustment -= 2;
         reasoning.push(
-          "Active probing detected — significantly lowering thresholds"
+          "Active probing detected — significantly lowering thresholds",
         );
       } else if (
         tracker.currentPhase === ATTACK_PHASES.EXPLOITATION ||
@@ -553,7 +555,7 @@ class ProactiveScanner {
       if (memoryAssessment.cumulativeScore > 5) {
         thresholdAdjustment -= 1;
         reasoning.push(
-          `High cumulative risk score: ${memoryAssessment.cumulativeScore}`
+          `High cumulative risk score: ${memoryAssessment.cumulativeScore}`,
         );
       }
 
@@ -567,7 +569,7 @@ class ProactiveScanner {
           predictedLevel = THREAT_LEVELS.CRITICAL;
           thresholdAdjustment -= 2;
           reasoning.push(
-            `Trajectory analysis: ${traj.pattern} pattern (confidence: ${traj.confidence})`
+            `Trajectory analysis: ${traj.pattern} pattern (confidence: ${traj.confidence})`,
           );
         } else if (traj.pattern === "trust_building") {
           if (predictedLevel !== THREAT_LEVELS.CRITICAL) {
@@ -575,7 +577,7 @@ class ProactiveScanner {
           }
           thresholdAdjustment -= 1;
           reasoning.push(
-            `Trajectory analysis: ${traj.pattern} pattern detected`
+            `Trajectory analysis: ${traj.pattern} pattern detected`,
           );
         }
       }

@@ -37,7 +37,9 @@ function writeFile(filePath, content) {
   if (SandboxedExecutor) {
     const sandbox = new SandboxedExecutor({ repoRoot: REPO_ROOT });
     const result = sandbox.writeFile(abs, content);
-    console.log(`   ✅ Wrote ${result.bytesWritten} bytes → ${path.relative(REPO_ROOT, abs)} (sandboxed)`);
+    console.log(
+      `   ✅ Wrote ${result.bytesWritten} bytes → ${path.relative(REPO_ROOT, abs)} (sandboxed)`,
+    );
     return result;
   }
 
@@ -54,7 +56,9 @@ function writeFile(filePath, content) {
   fs.writeFileSync(abs, content, "utf8");
   const stat = fs.statSync(abs);
 
-  console.log(`   ✅ Wrote ${stat.size} bytes → ${path.relative(REPO_ROOT, abs)}`);
+  console.log(
+    `   ✅ Wrote ${stat.size} bytes → ${path.relative(REPO_ROOT, abs)}`,
+  );
   return { success: true, filePath: abs, bytesWritten: stat.size };
 }
 
@@ -162,11 +166,16 @@ function bestBlockForFile(blocks, filePath) {
   const targetLangs = langMap[ext] || [];
 
   // First: exact language match
-  const langMatch = blocks.find((b) => targetLangs.includes(b.language.toLowerCase()));
+  const langMatch = blocks.find((b) =>
+    targetLangs.includes(b.language.toLowerCase()),
+  );
   if (langMatch) return langMatch;
 
   // Second: largest block (most likely to be the real implementation)
-  return blocks.reduce((best, b) => (b.code.length > best.code.length ? b : best), blocks[0]);
+  return blocks.reduce(
+    (best, b) => (b.code.length > best.code.length ? b : best),
+    blocks[0],
+  );
 }
 
 /**
@@ -213,4 +222,10 @@ function gitCommit(message) {
   return runCommand(`git commit -m "${message.replace(/"/g, '\\"')}"`);
 }
 
-module.exports = { writeFile, runCommand, executeBrief, extractCodeBlocks, gitCommit };
+module.exports = {
+  writeFile,
+  runCommand,
+  executeBrief,
+  extractCodeBlocks,
+  gitCommit,
+};

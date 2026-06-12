@@ -10,16 +10,16 @@
  * Zero external dependencies (uses Node.js zlib).
  */
 
-const fs = require('fs');
-const path = require('path');
-const zlib = require('zlib');
-const { EventEmitter } = require('events');
+const fs = require("fs");
+const path = require("path");
+const zlib = require("zlib");
+const { EventEmitter } = require("events");
 
 const DEFAULTS = {
-  maxSizeBytes: 10 * 1024 * 1024,  // 10MB before rotation
-  maxFiles: 10,                     // Keep 10 rotated files
-  compress: true,                   // Gzip old files
-  archiveDir: null,                 // Separate archive dir (default: same dir)
+  maxSizeBytes: 10 * 1024 * 1024, // 10MB before rotation
+  maxFiles: 10, // Keep 10 rotated files
+  compress: true, // Gzip old files
+  archiveDir: null, // Separate archive dir (default: same dir)
 };
 
 class LogRotator extends EventEmitter {
@@ -71,7 +71,7 @@ class LogRotator extends EventEmitter {
       return;
     }
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
     const rotatedName = `${this.baseName}.${timestamp}`;
     const rotatedPath = path.join(this.archiveDir, rotatedName);
 
@@ -79,10 +79,10 @@ class LogRotator extends EventEmitter {
     fs.renameSync(this.logPath, rotatedPath);
 
     // Create empty new log
-    fs.writeFileSync(this.logPath, '', 'utf8');
+    fs.writeFileSync(this.logPath, "", "utf8");
 
     this.stats.rotations++;
-    this.emit('rotate', { oldPath: this.logPath, newPath: rotatedPath });
+    this.emit("rotate", { oldPath: this.logPath, newPath: rotatedPath });
 
     // Compress if enabled
     if (this.config.compress) {
@@ -100,13 +100,17 @@ class LogRotator extends EventEmitter {
   _compress(filePath) {
     const content = fs.readFileSync(filePath);
     const compressed = zlib.gzipSync(content);
-    const compressedPath = filePath + '.gz';
+    const compressedPath = filePath + ".gz";
 
     fs.writeFileSync(compressedPath, compressed);
     fs.unlinkSync(filePath); // Delete uncompressed
 
     this.stats.bytesArchived += compressed.length;
-    this.emit('compress', { path: compressedPath, originalSize: content.length, compressedSize: compressed.length });
+    this.emit("compress", {
+      path: compressedPath,
+      originalSize: content.length,
+      compressedSize: compressed.length,
+    });
   }
 
   /**
@@ -114,8 +118,9 @@ class LogRotator extends EventEmitter {
    * @private
    */
   _enforceRetention() {
-    const files = fs.readdirSync(this.archiveDir)
-      .filter(f => f.startsWith(this.baseName + '.'))
+    const files = fs
+      .readdirSync(this.archiveDir)
+      .filter((f) => f.startsWith(this.baseName + "."))
       .sort()
       .reverse(); // Newest first
 
@@ -126,7 +131,7 @@ class LogRotator extends EventEmitter {
       const stats = fs.statSync(filePath);
       fs.unlinkSync(filePath);
       this.stats.filesDeleted++;
-      this.emit('delete', { path: filePath, size: stats.size });
+      this.emit("delete", { path: filePath, size: stats.size });
     }
   }
 
@@ -138,9 +143,9 @@ class LogRotator extends EventEmitter {
   write(data, newline = true) {
     this.checkAndRotate();
 
-    const content = newline ? data + '\n' : data;
-    fs.appendFileSync(this.logPath, content, 'utf8');
-    this.stats.bytesWritten += Buffer.byteLength(content, 'utf8');
+    const content = newline ? data + "\n" : data;
+    fs.appendFileSync(this.logPath, content, "utf8");
+    this.stats.bytesWritten += Buffer.byteLength(content, "utf8");
   }
 
   /**
@@ -163,16 +168,17 @@ class LogRotator extends EventEmitter {
       return [];
     }
 
-    return fs.readdirSync(this.archiveDir)
-      .filter(f => f.startsWith(this.baseName + '.'))
-      .map(name => {
+    return fs
+      .readdirSync(this.archiveDir)
+      .filter((f) => f.startsWith(this.baseName + "."))
+      .map((name) => {
         const filePath = path.join(this.archiveDir, name);
         const stats = fs.statSync(filePath);
         return {
           name,
           path: filePath,
           size: stats.size,
-          compressed: name.endsWith('.gz'),
+          compressed: name.endsWith(".gz"),
           mtime: stats.mtime,
         };
       })
@@ -199,7 +205,7 @@ class LogRotator extends EventEmitter {
       fs.unlinkSync(archive.path);
       this.stats.filesDeleted++;
     }
-    this.emit('clear', { deleted: archives.length });
+    this.emit("clear", { deleted: archives.length });
   }
 }
 

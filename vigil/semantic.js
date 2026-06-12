@@ -13,8 +13,8 @@
  * Requires ANTHROPIC_API_KEY in .env
  */
 
-const crypto = require('crypto');
-const { EventEmitter } = require('events');
+const crypto = require("crypto");
+const { EventEmitter } = require("events");
 
 const GRAY_ZONE_MIN = 3;
 const GRAY_ZONE_MAX = 6;
@@ -63,7 +63,9 @@ class SemanticAnalyzer extends EventEmitter {
     };
 
     if (!this.enabled) {
-      console.warn('VIGIL Semantic: ANTHROPIC_API_KEY not set — LLM analysis disabled');
+      console.warn(
+        "VIGIL Semantic: ANTHROPIC_API_KEY not set — LLM analysis disabled",
+      );
     }
   }
 
@@ -79,11 +81,11 @@ class SemanticAnalyzer extends EventEmitter {
     // Only analyze gray zone scores
     if (baseScore < GRAY_ZONE_MIN || baseScore > GRAY_ZONE_MAX) {
       return {
-        verdict: baseScore <= 2 ? 'SAFE' : 'DANGEROUS',
+        verdict: baseScore <= 2 ? "SAFE" : "DANGEROUS",
         confidence: 80,
-        reasoning: 'Score outside gray zone — no LLM analysis needed',
-        action: baseScore <= 2 ? 'ALLOW' : 'BLOCK',
-        source: 'score_heuristic',
+        reasoning: "Score outside gray zone — no LLM analysis needed",
+        action: baseScore <= 2 ? "ALLOW" : "BLOCK",
+        source: "score_heuristic",
       };
     }
 
@@ -92,7 +94,7 @@ class SemanticAnalyzer extends EventEmitter {
     const cached = this._getCached(cacheKey);
     if (cached) {
       this.stats.cacheHits++;
-      return { ...cached, source: 'cache' };
+      return { ...cached, source: "cache" };
     }
 
     this.stats.cacheMisses++;
@@ -108,10 +110,10 @@ class SemanticAnalyzer extends EventEmitter {
     try {
       const result = await this._callLLM(text, baseScore);
       this._cache(cacheKey, result);
-      return { ...result, source: 'llm' };
+      return { ...result, source: "llm" };
     } catch (error) {
       this.stats.errors++;
-      console.warn('VIGIL Semantic: LLM error, using fallback:', error.message);
+      console.warn("VIGIL Semantic: LLM error, using fallback:", error.message);
       const result = this._fallbackDecision(baseScore, text);
       this._cache(cacheKey, result);
       return result;
@@ -129,19 +131,19 @@ class SemanticAnalyzer extends EventEmitter {
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.apiKey,
-          'anthropic-version': '2023-06-01',
+          "Content-Type": "application/json",
+          "x-api-key": this.apiKey,
+          "anthropic-version": "2023-06-01",
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
+          model: "claude-sonnet-4-20250514",
           max_tokens: 200,
           messages: [
             {
-              role: 'user',
+              role: "user",
               content: `${ANALYSIS_PROMPT}\n\nText to analyze:\n${text.substring(0, 2000)}`,
             },
           ],
@@ -156,28 +158,31 @@ class SemanticAnalyzer extends EventEmitter {
       }
 
       const data = await response.json();
-      const content = data.content[0]?.text || '';
+      const content = data.content[0]?.text || "";
 
       // Parse JSON from response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (!jsonMatch) {
-        throw new Error('Invalid JSON response from LLM');
+        throw new Error("Invalid JSON response from LLM");
       }
 
       const result = JSON.parse(jsonMatch[0]);
 
       // Validate response structure
-      if (!['SAFE', 'SUSPICIOUS', 'DANGEROUS'].includes(result.verdict)) {
-        throw new Error('Invalid verdict in response');
+      if (!["SAFE", "SUSPICIOUS", "DANGEROUS"].includes(result.verdict)) {
+        throw new Error("Invalid verdict in response");
       }
 
-      this.emit('analyzed', { text: text.substring(0, 50), verdict: result.verdict });
+      this.emit("analyzed", {
+        text: text.substring(0, 50),
+        verdict: result.verdict,
+      });
       return result;
     } catch (error) {
       clearTimeout(timeoutId);
-      if (error.name === 'AbortError') {
+      if (error.name === "AbortError") {
         this.stats.timeouts++;
-        throw new Error('LLM timeout');
+        throw new Error("LLM timeout");
       }
       throw error;
     }
@@ -193,25 +198,25 @@ class SemanticAnalyzer extends EventEmitter {
     // Simple heuristic based on score
     let verdict, action, confidence;
     if (baseScore <= 3) {
-      verdict = 'SAFE';
-      action = 'ALLOW';
+      verdict = "SAFE";
+      action = "ALLOW";
       confidence = 60;
     } else if (baseScore <= 5) {
-      verdict = 'SUSPICIOUS';
-      action = 'CHALLENGE';
+      verdict = "SUSPICIOUS";
+      action = "CHALLENGE";
       confidence = 50;
     } else {
-      verdict = 'DANGEROUS';
-      action = 'BLOCK';
+      verdict = "DANGEROUS";
+      action = "BLOCK";
       confidence = 70;
     }
 
     return {
       verdict,
       confidence,
-      reasoning: 'LLM unavailable — using score-based heuristic',
+      reasoning: "LLM unavailable — using score-based heuristic",
       action,
-      source: 'fallback',
+      source: "fallback",
     };
   }
 
@@ -220,7 +225,7 @@ class SemanticAnalyzer extends EventEmitter {
    * @private
    */
   _hash(text) {
-    return crypto.createHash('sha256').update(text).digest('hex');
+    return crypto.createHash("sha256").update(text).digest("hex");
   }
 
   /**
@@ -265,7 +270,7 @@ class SemanticAnalyzer extends EventEmitter {
    */
   clearCache() {
     this.cache.clear();
-    this.emit('cache_cleared');
+    this.emit("cache_cleared");
   }
 
   /**

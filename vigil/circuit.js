@@ -8,19 +8,19 @@
  * Zero external dependencies.
  */
 
-const { EventEmitter } = require('events');
+const { EventEmitter } = require("events");
 
 const DEFAULTS = {
-  failureThreshold: 5,      // Failures before opening circuit
-  successThreshold: 3,      // Successes in half-open to close
-  timeout: 30000,           // Time in open state before half-open (30s)
-  resetTimeout: 300000,     // Full reset after 5 min of no activity
+  failureThreshold: 5, // Failures before opening circuit
+  successThreshold: 3, // Successes in half-open to close
+  timeout: 30000, // Time in open state before half-open (30s)
+  resetTimeout: 300000, // Full reset after 5 min of no activity
 };
 
 const STATES = {
-  CLOSED: 'closed',      // Normal operation
-  OPEN: 'open',          // Failing fast, not attempting operations
-  HALF_OPEN: 'half_open', // Testing if service recovered
+  CLOSED: "closed", // Normal operation
+  OPEN: "open", // Failing fast, not attempting operations
+  HALF_OPEN: "half_open", // Testing if service recovered
 };
 
 class CircuitBreaker extends EventEmitter {
@@ -68,9 +68,9 @@ class CircuitBreaker extends EventEmitter {
       this.stats.rejects++;
       const error = new CircuitOpenError(
         `Circuit breaker '${this.name}' is open`,
-        this.stateChangedAt + this.config.timeout - Date.now()
+        this.stateChangedAt + this.config.timeout - Date.now(),
       );
-      this.emit('reject', { error });
+      this.emit("reject", { error });
       throw error;
     }
 
@@ -110,7 +110,10 @@ class CircuitBreaker extends EventEmitter {
     this.failures++;
     this.lastFailure = Date.now();
 
-    if (this.state === STATES.CLOSED && this.failures >= this.config.failureThreshold) {
+    if (
+      this.state === STATES.CLOSED &&
+      this.failures >= this.config.failureThreshold
+    ) {
       this._transitionTo(STATES.OPEN);
     } else if (this.state === STATES.HALF_OPEN) {
       // Any failure in half-open immediately opens the circuit
@@ -134,7 +137,7 @@ class CircuitBreaker extends EventEmitter {
       this.successes = 0;
     }
 
-    this.emit('state_change', { from: oldState, to: newState });
+    this.emit("state_change", { from: oldState, to: newState });
     console.log(`Circuit '${this.name}': ${oldState} → ${newState}`);
   }
 
@@ -145,7 +148,7 @@ class CircuitBreaker extends EventEmitter {
     this._transitionTo(STATES.CLOSED);
     this.failures = 0;
     this.successes = 0;
-    this.emit('reset');
+    this.emit("reset");
   }
 
   /**
@@ -193,7 +196,10 @@ class CircuitBreaker extends EventEmitter {
    */
   checkReset() {
     const inactiveTime = Date.now() - this.lastActivity;
-    if (inactiveTime >= this.config.resetTimeout && this.state !== STATES.CLOSED) {
+    if (
+      inactiveTime >= this.config.resetTimeout &&
+      this.state !== STATES.CLOSED
+    ) {
       this.reset();
       return true;
     }
@@ -207,9 +213,9 @@ class CircuitBreaker extends EventEmitter {
 class CircuitOpenError extends Error {
   constructor(message, retryAfterMs) {
     super(message);
-    this.name = 'CircuitOpenError';
+    this.name = "CircuitOpenError";
     this.retryAfter = retryAfterMs;
-    this.code = 'CIRCUIT_OPEN';
+    this.code = "CIRCUIT_OPEN";
   }
 }
 
@@ -232,8 +238,8 @@ class CircuitRegistry extends EventEmitter {
   get(name, options = {}) {
     if (!this.breakers.has(name)) {
       const breaker = new CircuitBreaker(name, options);
-      breaker.on('state_change', (data) => {
-        this.emit('state_change', { name, ...data });
+      breaker.on("state_change", (data) => {
+        this.emit("state_change", { name, ...data });
       });
       this.breakers.set(name, breaker);
     }

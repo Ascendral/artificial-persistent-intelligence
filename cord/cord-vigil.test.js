@@ -62,7 +62,9 @@ describeWithVigil("CORD + VIGIL Integration", () => {
       expect(result.decision).toBe("BLOCK");
       expect(result.hardBlock).toBe(true);
       expect(result.risks.vigilBlock).toBe(true);
-      expect(result.reasons.some(r => r.startsWith("VIGIL BLOCK"))).toBe(true);
+      expect(result.reasons.some((r) => r.startsWith("VIGIL BLOCK"))).toBe(
+        true,
+      );
       expect(result.vigilResult).toBeDefined();
       expect(result.vigilResult.decision).toBe("BLOCK");
     });
@@ -140,7 +142,9 @@ describeWithVigil("CORD + VIGIL Integration", () => {
       } else if (result.risks.vigilObfuscation) {
         // Obfuscation flag should be present
         expect(result.risks.vigilObfuscation).toBe(true);
-        expect(result.reasons).toContain("Obfuscated content detected by VIGIL");
+        expect(result.reasons).toContain(
+          "Obfuscated content detected by VIGIL",
+        );
       }
     });
   });

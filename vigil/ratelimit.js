@@ -7,24 +7,24 @@
  * Zero external dependencies.
  */
 
-const EventEmitter = require('events');
+const EventEmitter = require("events");
 
 const DEFAULTS = {
   // Token bucket config
-  bucketSize: 100,        // Max tokens per bucket
-  refillRate: 10,         // Tokens added per second
-  refillInterval: 1000,   // Refill every 1s
+  bucketSize: 100, // Max tokens per bucket
+  refillRate: 10, // Tokens added per second
+  refillInterval: 1000, // Refill every 1s
 
   // Per-session limits
-  sessionLimit: 50,       // Max scans per session per minute
-  sessionWindow: 60000,   // 1 minute window
+  sessionLimit: 50, // Max scans per session per minute
+  sessionWindow: 60000, // 1 minute window
 
   // Global limits
-  globalLimit: 500,       // Max scans globally per minute
-  globalWindow: 60000,    // 1 minute window
+  globalLimit: 500, // Max scans globally per minute
+  globalWindow: 60000, // 1 minute window
 
   // Cooldown on limit hit
-  cooldownMs: 30000,      // 30s cooldown after limit hit
+  cooldownMs: 30000, // 30s cooldown after limit hit
 };
 
 /**
@@ -74,7 +74,7 @@ class SlidingWindow {
   record() {
     const now = Date.now();
     const cutoff = now - this.windowMs;
-    this.requests = this.requests.filter(t => t > cutoff);
+    this.requests = this.requests.filter((t) => t > cutoff);
     this.requests.push(now);
     return this.requests.length;
   }
@@ -82,7 +82,7 @@ class SlidingWindow {
   getCount() {
     const now = Date.now();
     const cutoff = now - this.windowMs;
-    this.requests = this.requests.filter(t => t > cutoff);
+    this.requests = this.requests.filter((t) => t > cutoff);
     return this.requests.length;
   }
 
@@ -106,11 +106,11 @@ class RateLimiter extends EventEmitter {
     // Global rate limit
     this.globalBucket = new TokenBucket(
       this.config.bucketSize,
-      this.config.refillRate / 1000
+      this.config.refillRate / 1000,
     );
     this.globalWindow = new SlidingWindow(
       this.config.globalLimit,
-      this.config.globalWindow
+      this.config.globalWindow,
     );
 
     // Per-session rate limits
@@ -140,7 +140,7 @@ class RateLimiter extends EventEmitter {
    * @param {string} sessionId - Session identifier (or 'global')
    * @returns {{ allowed, reason, retryAfter, remaining }}
    */
-  check(sessionId = 'global') {
+  check(sessionId = "global") {
     this.stats.totalRequests++;
     const now = Date.now();
 
@@ -151,7 +151,7 @@ class RateLimiter extends EventEmitter {
       this.stats.cooldowns++;
       return {
         allowed: false,
-        reason: 'cooldown',
+        reason: "cooldown",
         retryAfter: Math.ceil((cooldownEnd - now) / 1000),
         remaining: 0,
       };
@@ -165,11 +165,11 @@ class RateLimiter extends EventEmitter {
     // Check global window
     const globalCount = this.globalWindow.record();
     if (globalCount > this.config.globalLimit) {
-      this._enterCooldown('global');
+      this._enterCooldown("global");
       this.stats.rejected++;
       return {
         allowed: false,
-        reason: 'global_limit',
+        reason: "global_limit",
         retryAfter: Math.ceil(this.config.cooldownMs / 1000),
         remaining: 0,
       };
@@ -180,23 +180,29 @@ class RateLimiter extends EventEmitter {
       this.stats.rejected++;
       return {
         allowed: false,
-        reason: 'global_bucket',
+        reason: "global_bucket",
         retryAfter: Math.ceil(1000 / this.config.refillRate),
         remaining: this.globalBucket.getTokens(),
       };
     }
 
     // Per-session checks (skip for 'global')
-    if (sessionId !== 'global') {
+    if (sessionId !== "global") {
       // Get or create session bucket
       if (!this.sessionBuckets.has(sessionId)) {
         this.sessionBuckets.set(
           sessionId,
-          new TokenBucket(this.config.bucketSize, this.config.refillRate / 1000)
+          new TokenBucket(
+            this.config.bucketSize,
+            this.config.refillRate / 1000,
+          ),
         );
         this.sessionWindows.set(
           sessionId,
-          new SlidingWindow(this.config.sessionLimit, this.config.sessionWindow)
+          new SlidingWindow(
+            this.config.sessionLimit,
+            this.config.sessionWindow,
+          ),
         );
       }
 
@@ -208,10 +214,10 @@ class RateLimiter extends EventEmitter {
       if (sessionCount > this.config.sessionLimit) {
         this._enterCooldown(sessionId);
         this.stats.rejected++;
-        this.emit('session_limit', { sessionId, count: sessionCount });
+        this.emit("session_limit", { sessionId, count: sessionCount });
         return {
           allowed: false,
-          reason: 'session_limit',
+          reason: "session_limit",
           retryAfter: Math.ceil(this.config.cooldownMs / 1000),
           remaining: 0,
         };
@@ -222,7 +228,7 @@ class RateLimiter extends EventEmitter {
         this.stats.rejected++;
         return {
           allowed: false,
-          reason: 'session_bucket',
+          reason: "session_bucket",
           retryAfter: Math.ceil(1000 / this.config.refillRate),
           remaining: sessionBucket.getTokens(),
         };
@@ -234,9 +240,10 @@ class RateLimiter extends EventEmitter {
       allowed: true,
       reason: null,
       retryAfter: 0,
-      remaining: sessionId === 'global'
-        ? this.globalBucket.getTokens()
-        : this.sessionBuckets.get(sessionId)?.getTokens() || 0,
+      remaining:
+        sessionId === "global"
+          ? this.globalBucket.getTokens()
+          : this.sessionBuckets.get(sessionId)?.getTokens() || 0,
     };
   }
 
@@ -247,7 +254,7 @@ class RateLimiter extends EventEmitter {
   _enterCooldown(sessionId) {
     const cooldownEnd = Date.now() + this.config.cooldownMs;
     this.cooldowns.set(sessionId, cooldownEnd);
-    this.emit('cooldown', { sessionId, cooldownEnd });
+    this.emit("cooldown", { sessionId, cooldownEnd });
   }
 
   /**
@@ -258,7 +265,7 @@ class RateLimiter extends EventEmitter {
     this.sessionBuckets.delete(sessionId);
     this.sessionWindows.delete(sessionId);
     this.cooldowns.delete(sessionId);
-    this.emit('session_reset', sessionId);
+    this.emit("session_reset", sessionId);
   }
 
   /**
@@ -267,13 +274,13 @@ class RateLimiter extends EventEmitter {
   clear() {
     this.globalBucket = new TokenBucket(
       this.config.bucketSize,
-      this.config.refillRate / 1000
+      this.config.refillRate / 1000,
     );
     this.globalWindow.reset();
     this.sessionBuckets.clear();
     this.sessionWindows.clear();
     this.cooldowns.clear();
-    this.emit('cleared');
+    this.emit("cleared");
   }
 
   /**

@@ -13,7 +13,10 @@
  *   --help        Show this help
  */
 
-require("dotenv").config({ path: require("path").join(__dirname, "../.env"), override: true });
+require("dotenv").config({
+  path: require("path").join(__dirname, "../.env"),
+  override: true,
+});
 
 const { Orchestrator } = require("./orchestrator");
 
@@ -46,7 +49,9 @@ const dryRun = args.includes("--dry-run");
 const goal = args.filter((a) => !a.startsWith("--")).join(" ");
 
 if (!goal) {
-  console.error("❌ Error: No goal provided. Use: node legion/index.js \"<your goal>\"");
+  console.error(
+    '❌ Error: No goal provided. Use: node legion/index.js "<your goal>"',
+  );
   process.exit(1);
 }
 
@@ -85,9 +90,15 @@ Or set it in your shell:
       console.log(`  Description:  ${t.description}`);
       console.log(`  Model:        ${t.assignedModel}`);
       console.log(`  Type:         ${t.type}`);
-      console.log(`  Files:        ${(t.filePaths || []).join(", ") || "none"}`);
-      console.log(`  Dependencies: ${(t.dependencies || []).join(", ") || "none"}`);
-      console.log(`  Criteria:     ${(t.acceptanceCriteria || []).join(" | ")}`);
+      console.log(
+        `  Files:        ${(t.filePaths || []).join(", ") || "none"}`,
+      );
+      console.log(
+        `  Dependencies: ${(t.dependencies || []).join(", ") || "none"}`,
+      );
+      console.log(
+        `  Criteria:     ${(t.acceptanceCriteria || []).join(" | ")}`,
+      );
       console.log();
     });
 

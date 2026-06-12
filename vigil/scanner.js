@@ -7,9 +7,9 @@
  *     Patterns now run against the deobfuscated combined text.
  */
 
-const { patterns, categoryWeights, criticalCategories } = require('./patterns');
-const { normalize } = require('./normalizer');
-const config = require('./config');
+const { patterns, categoryWeights, criticalCategories } = require("./patterns");
+const { normalize } = require("./normalizer");
+const config = require("./config");
 
 /**
  * Scan text for threats
@@ -17,12 +17,12 @@ const config = require('./config');
  * @returns {Object} - { severity: 0-10, decision: ALLOW|CHALLENGE|BLOCK, threats: [], summary: string }
  */
 function scan(text) {
-  if (!text || typeof text !== 'string') {
+  if (!text || typeof text !== "string") {
     return {
       severity: 0,
-      decision: 'ALLOW',
+      decision: "ALLOW",
       threats: [],
-      summary: 'No content to scan',
+      summary: "No content to scan",
     };
   }
 
@@ -48,7 +48,7 @@ function scan(text) {
     for (const regex of regexList) {
       const matches = scanTarget.match(regex);
       if (matches) {
-        categoryMatches.push(...matches.map(m => m.trim()));
+        categoryMatches.push(...matches.map((m) => m.trim()));
       }
     }
 
@@ -78,20 +78,28 @@ function scan(text) {
   }
 
   // Normalize severity to 0-10 scale
-  const severity = Math.min(10, Math.round(totalScore / Math.max(1, detectedCategories.size)));
+  const severity = Math.min(
+    10,
+    Math.round(totalScore / Math.max(1, detectedCategories.size)),
+  );
 
   // Determine decision
   let decision;
   if (hasCriticalThreat || severity >= config.thresholds.block) {
-    decision = 'BLOCK';
+    decision = "BLOCK";
   } else if (severity > config.thresholds.allow) {
-    decision = 'CHALLENGE';
+    decision = "CHALLENGE";
   } else {
-    decision = 'ALLOW';
+    decision = "ALLOW";
   }
 
   // Generate summary
-  const summary = generateSummary(decision, severity, threats, hasCriticalThreat);
+  const summary = generateSummary(
+    decision,
+    severity,
+    threats,
+    hasCriticalThreat,
+  );
 
   return {
     severity,
@@ -108,21 +116,21 @@ function scan(text) {
  */
 function generateSummary(decision, severity, threats, hasCriticalThreat) {
   if (threats.length === 0) {
-    return 'Clean content - no threats detected';
+    return "Clean content - no threats detected";
   }
 
-  const categories = threats.map(t => t.category).join(', ');
+  const categories = threats.map((t) => t.category).join(", ");
   const matchCount = threats.reduce((sum, t) => sum + t.matches.length, 0);
 
   if (hasCriticalThreat) {
     return `CRITICAL THREAT: Detected ${categories} (${matchCount} matches) - severity ${severity}/10`;
   }
 
-  if (decision === 'BLOCK') {
+  if (decision === "BLOCK") {
     return `THREAT: Detected ${categories} (${matchCount} matches) - severity ${severity}/10`;
   }
 
-  if (decision === 'CHALLENGE') {
+  if (decision === "CHALLENGE") {
     return `SUSPICIOUS: Detected ${categories} (${matchCount} matches) - severity ${severity}/10`;
   }
 

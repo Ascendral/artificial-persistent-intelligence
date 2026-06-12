@@ -1,248 +1,471 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Architecture · SENTINEL</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --black:  #0a0a0a;
-      --white:  #f0f0f0;
-      --grey:   #888;
-      --accent: #ff3333;
-      --wolf:   #ff6600;
-      --dim:    #333;
-      --dark:   #111;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--black); color: var(--white); font-family: 'Space Mono', monospace; line-height: 1.6; }
-    a { color: inherit; text-decoration: none; }
-    .nav { position: fixed; top: 0; left: 0; right: 0; background: rgba(10,10,10,0.9); backdrop-filter: blur(6px); border-bottom: 1px solid var(--dim); z-index: 1000; }
-    .nav .inner { max-width: 1100px; margin: 0 auto; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .brand { font-family: 'Syne', sans-serif; font-size: 1.05rem; letter-spacing: 0.08em; text-transform: uppercase; }
-    .nav-links { display: flex; gap: 14px; align-items: center; }
-    .nav-links a { padding: 8px 10px; border-radius: 8px; transition: background 0.2s ease, color 0.2s ease; color: var(--grey); }
-    .nav-links a:hover, .nav-links a:focus { background: var(--dark); color: var(--white); }
-    .menu-toggle { display: none; background: var(--dark); color: var(--white); border: 1px solid var(--dim); border-radius: 8px; padding: 8px 10px; font-family: 'Space Mono', monospace; }
-    main { padding: 120px 20px 80px; max-width: 1100px; margin: 0 auto; }
-    .hero { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; align-items: center; margin-bottom: 48px; }
-    .hero h1 { font-family: 'Syne', sans-serif; font-size: clamp(2.2rem, 4vw, 3.2rem); margin: 0 0 12px; letter-spacing: -0.02em; }
-    .tag { display: inline-flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid var(--dim); border-radius: 999px; background: var(--dark); color: var(--grey); font-size: 0.9rem; }
-    .section { margin: 48px 0; border: 1px solid var(--dim); border-radius: 16px; padding: 24px; background: var(--dark); }
-    .section h2 { font-family: 'Syne', sans-serif; margin: 0 0 12px; font-size: 1.6rem; letter-spacing: -0.01em; }
-    .grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
-    .card { padding: 18px; border: 1px solid var(--dim); border-radius: 12px; background: linear-gradient(145deg, #0c0c0c, #0e0e0e); min-height: 140px; }
-    .card h3 { font-family: 'Syne', sans-serif; margin: 0 0 10px; font-size: 1.2rem; }
-    .meta { color: var(--grey); font-size: 0.95rem; }
-    .list { padding-left: 18px; color: var(--white); }
-    .cta-row { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 16px; }
-    .btn { padding: 12px 16px; border-radius: 10px; border: 1px solid var(--accent); background: var(--accent); color: var(--black); font-weight: 700; letter-spacing: 0.02em; transition: transform 0.15s ease, box-shadow 0.15s ease; font-family: 'Syne', sans-serif; }
-    .btn.secondary { background: transparent; color: var(--white); border-color: var(--dim); }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(255,51,51,0.2); }
-    .fade { opacity: 0; transform: translateY(18px); transition: opacity 0.6s ease, transform 0.6s ease; }
-    .fade.visible { opacity: 1; transform: translateY(0); }
-    footer { margin-top: 60px; padding: 20px 0 10px; color: var(--grey); font-size: 0.95rem; }
-    @media (max-width: 760px) {
-      .nav .inner { align-items: flex-start; }
-      .menu-toggle { display: inline-flex; }
-      .nav-links { position: absolute; top: 62px; left: 0; right: 0; flex-direction: column; padding: 12px 20px; background: var(--dark); border-top: 1px solid var(--dim); display: none; }
-      .nav-links.open { display: flex; }
-      main { padding-top: 120px; }
-    }
-  </style>
-</head>
-<body>
-  <header class="nav">
-    <div class="inner">
-      <div class="brand">SENTINEL</div>
-      <button class="menu-toggle" aria-label="Toggle navigation">Menu</button>
-      <nav class="nav-links" aria-label="Primary">
-        <a href="index.html">Home</a>
-        <a href="manifesto.html">Manifesto</a>
-        <a href="wolf.html">CORD</a>
-        <a href="architecture.html">Architecture</a>
-        <a href="contact.html">Contact</a>
-      </nav>
-    </div>
-  </header>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture · SENTINEL</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Space+Mono:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --black: #0a0a0a;
+        --white: #f0f0f0;
+        --grey: #888;
+        --accent: #ff3333;
+        --wolf: #ff6600;
+        --dim: #333;
+        --dark: #111;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--black);
+        color: var(--white);
+        font-family: "Space Mono", monospace;
+        line-height: 1.6;
+      }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: rgba(10, 10, 10, 0.9);
+        backdrop-filter: blur(6px);
+        border-bottom: 1px solid var(--dim);
+        z-index: 1000;
+      }
+      .nav .inner {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .brand {
+        font-family: "Syne", sans-serif;
+        font-size: 1.05rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+      .nav-links {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .nav-links a {
+        padding: 8px 10px;
+        border-radius: 8px;
+        transition:
+          background 0.2s ease,
+          color 0.2s ease;
+        color: var(--grey);
+      }
+      .nav-links a:hover,
+      .nav-links a:focus {
+        background: var(--dark);
+        color: var(--white);
+      }
+      .menu-toggle {
+        display: none;
+        background: var(--dark);
+        color: var(--white);
+        border: 1px solid var(--dim);
+        border-radius: 8px;
+        padding: 8px 10px;
+        font-family: "Space Mono", monospace;
+      }
+      main {
+        padding: 120px 20px 80px;
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+      .hero {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 24px;
+        align-items: center;
+        margin-bottom: 48px;
+      }
+      .hero h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(2.2rem, 4vw, 3.2rem);
+        margin: 0 0 12px;
+        letter-spacing: -0.02em;
+      }
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border: 1px solid var(--dim);
+        border-radius: 999px;
+        background: var(--dark);
+        color: var(--grey);
+        font-size: 0.9rem;
+      }
+      .section {
+        margin: 48px 0;
+        border: 1px solid var(--dim);
+        border-radius: 16px;
+        padding: 24px;
+        background: var(--dark);
+      }
+      .section h2 {
+        font-family: "Syne", sans-serif;
+        margin: 0 0 12px;
+        font-size: 1.6rem;
+        letter-spacing: -0.01em;
+      }
+      .grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      }
+      .card {
+        padding: 18px;
+        border: 1px solid var(--dim);
+        border-radius: 12px;
+        background: linear-gradient(145deg, #0c0c0c, #0e0e0e);
+        min-height: 140px;
+      }
+      .card h3 {
+        font-family: "Syne", sans-serif;
+        margin: 0 0 10px;
+        font-size: 1.2rem;
+      }
+      .meta {
+        color: var(--grey);
+        font-size: 0.95rem;
+      }
+      .list {
+        padding-left: 18px;
+        color: var(--white);
+      }
+      .cta-row {
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+      }
+      .btn {
+        padding: 12px 16px;
+        border-radius: 10px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: var(--black);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
+        font-family: "Syne", sans-serif;
+      }
+      .btn.secondary {
+        background: transparent;
+        color: var(--white);
+        border-color: var(--dim);
+      }
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(255, 51, 51, 0.2);
+      }
+      .fade {
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 0.6s ease,
+          transform 0.6s ease;
+      }
+      .fade.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      footer {
+        margin-top: 60px;
+        padding: 20px 0 10px;
+        color: var(--grey);
+        font-size: 0.95rem;
+      }
+      @media (max-width: 760px) {
+        .nav .inner {
+          align-items: flex-start;
+        }
+        .menu-toggle {
+          display: inline-flex;
+        }
+        .nav-links {
+          position: absolute;
+          top: 62px;
+          left: 0;
+          right: 0;
+          flex-direction: column;
+          padding: 12px 20px;
+          background: var(--dark);
+          border-top: 1px solid var(--dim);
+          display: none;
+        }
+        .nav-links.open {
+          display: flex;
+        }
+        main {
+          padding-top: 120px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav">
+      <div class="inner">
+        <div class="brand">SENTINEL</div>
+        <button class="menu-toggle" aria-label="Toggle navigation">Menu</button>
+        <nav class="nav-links" aria-label="Primary">
+          <a href="index.html">Home</a>
+          <a href="manifesto.html">Manifesto</a>
+          <a href="wolf.html">CORD</a>
+          <a href="architecture.html">Architecture</a>
+          <a href="contact.html">Contact</a>
+        </nav>
+      </div>
+    </header>
 
-  <main>
-    <section class="architecture-page">
-      <div class="architecture-inner">
+    <main>
+      <section class="architecture-page">
+        <div class="architecture-inner">
+          <h1>SENTINEL</h1>
+          <h2>The Core Algorithm</h2>
 
-        <h1>SENTINEL</h1>
-        <h2>The Core Algorithm</h2>
-
-        <p>
-          SENTINEL is not a chatbot.
-          It is a closed-loop system designed to align with a single authenticated individual
-          and continuously optimize their outcomes while preventing drift, compromise, and misuse.
-        </p>
-
-        <p><strong>SENTINEL runs one persistent loop:</strong></p>
-        <p><strong>OBSERVE → MODEL → PROPOSE → VALIDATE → EXECUTE → AUDIT → LEARN</strong></p>
-
-        <h3>1. OBSERVE</h3>
-        <p>
-          SENTINEL captures only what the user explicitly authorizes:
-        </p>
-        <ul>
-          <li>Stated goals and active intentions</li>
-          <li>Environmental context (time, device, workload)</li>
-          <li>Connected systems (if granted)</li>
-          <li>Historical outcomes</li>
-          <li>Risk posture and constraint boundaries</li>
-        </ul>
-        <p>No ambient harvesting. No unnecessary collection.</p>
-
-        <h3>2. MODEL</h3>
-        <p>
-          SENTINEL maintains a private user model:
-        </p>
-        <ul>
-          <li>Long-term goals</li>
-          <li>Short-term objectives</li>
-          <li>Personal constraints (time, money, energy, obligations)</li>
-          <li>Execution capability</li>
-          <li>Behavioral patterns</li>
-          <li>Historical success and failure signals</li>
-        </ul>
-        <p>The model evolves from real outcomes — not engagement metrics.</p>
-
-        <h3>3. PROPOSE</h3>
-        <p>SENTINEL generates ranked action proposals:</p>
-        <ul>
-          <li>Advisory actions (recommendations)</li>
-          <li>Assistive actions (drafts, preparation, automation support)</li>
-          <li>Executable actions (within authorized scope only)</li>
-        </ul>
-        <p>Each proposal includes expected benefit, cost, data touched, required permissions, and a reversibility plan.</p>
-
-        <h3>4. VALIDATE (Integrity Gate)</h3>
-        <p>No action proceeds without validation.</p>
-        <ul>
-          <li>Identity confidence</li>
-          <li>Permission scope</li>
-          <li>Intent alignment</li>
-          <li>Risk threshold compliance</li>
-          <li>Data minimization</li>
-          <li>Reversibility</li>
-          <li>Drift detection</li>
-        </ul>
-        <p>If any gate fails, the action is blocked, logged, and requires explicit confirmation.</p>
-
-        <section class="section fade">
-          <h3>CORD — Counter-Operations &amp; Risk Detection</h3>
           <p>
-            SENTINEL is not allowed to act freely.
-            Every proposed action is inspected by CORD — the forensic validation and enforcement layer built into SENTINEL.
+            SENTINEL is not a chatbot. It is a closed-loop system designed to
+            align with a single authenticated individual and continuously
+            optimize their outcomes while preventing drift, compromise, and
+            misuse.
           </p>
 
+          <p><strong>SENTINEL runs one persistent loop:</strong></p>
           <p>
-            CORD exists to ensure that SENTINEL remains aligned with the authenticated individual,
-            that no external influence overrides user intent,
-            and that no action exceeds the granted permission scope.
+            <strong
+              >OBSERVE → MODEL → PROPOSE → VALIDATE → EXECUTE → AUDIT →
+              LEARN</strong
+            >
           </p>
 
-          <h3>The 9-Step CORD v2 Pipeline</h3>
-          <pre><code>NORMALIZE → AUTHENTICATE → SCOPE CHECK → INTENT MATCH → CONSTITUTIONAL CHECK → RISK SCORE → DECISION → AUDIT → VERDICT</code></pre>
+          <h3>1. OBSERVE</h3>
+          <p>SENTINEL captures only what the user explicitly authorizes:</p>
           <ul>
-            <li><strong>Normalize:</strong> sanitize input, classify action type</li>
-            <li><strong>Authenticate:</strong> verify intent lock exists and is valid</li>
-            <li><strong>Scope Check:</strong> paths, network targets, commands within bounds</li>
-            <li><strong>Intent Match:</strong> semantic alignment with declared purpose</li>
-            <li><strong>Constitutional Check:</strong> evaluate against all 11 SENTINEL articles</li>
-            <li><strong>Risk Score:</strong> weighted composite with anomaly amplification</li>
-            <li><strong>Decision:</strong> ALLOW / CONTAIN / CHALLENGE / BLOCK</li>
-            <li><strong>Audit:</strong> hash-chained append-only log entry</li>
-            <li><strong>Verdict:</strong> structured result with reasoning + alternatives</li>
+            <li>Stated goals and active intentions</li>
+            <li>Environmental context (time, device, workload)</li>
+            <li>Connected systems (if granted)</li>
+            <li>Historical outcomes</li>
+            <li>Risk posture and constraint boundaries</li>
           </ul>
+          <p>No ambient harvesting. No unnecessary collection.</p>
 
-          <h3>What CORD Detects</h3>
+          <h3>2. MODEL</h3>
+          <p>SENTINEL maintains a private user model:</p>
           <ul>
-            <li>Prompt injection attempts (regex pattern matching)</li>
-            <li>Data exfiltration (outbound data transfer detection)</li>
-            <li>Secrets exposure (API keys, tokens, credentials, .env files)</li>
-            <li>Privilege escalation (high-impact verbs + elevated grants)</li>
-            <li>Irreversible operations (destructive actions without safety indicators)</li>
-            <li>Moral violations (fraud, coercion, deception — instant BLOCK)</li>
-            <li>Constitutional drift (attempts to override Articles I–III — instant BLOCK)</li>
-            <li>Financial risk (impulsive spending, missing ROI evaluation)</li>
-            <li>Truth fabrication (manufactured data, fake results)</li>
-            <li>Intent drift (proposal misaligned with declared session purpose)</li>
+            <li>Long-term goals</li>
+            <li>Short-term objectives</li>
+            <li>Personal constraints (time, money, energy, obligations)</li>
+            <li>Execution capability</li>
+            <li>Behavioral patterns</li>
+            <li>Historical success and failure signals</li>
           </ul>
+          <p>The model evolves from real outcomes — not engagement metrics.</p>
 
-          <h3>Decision Thresholds</h3>
-          <pre><code>Score &lt; 3.0   → ALLOW     (execute immediately)
+          <h3>3. PROPOSE</h3>
+          <p>SENTINEL generates ranked action proposals:</p>
+          <ul>
+            <li>Advisory actions (recommendations)</li>
+            <li>Assistive actions (drafts, preparation, automation support)</li>
+            <li>Executable actions (within authorized scope only)</li>
+          </ul>
+          <p>
+            Each proposal includes expected benefit, cost, data touched,
+            required permissions, and a reversibility plan.
+          </p>
+
+          <h3>4. VALIDATE (Integrity Gate)</h3>
+          <p>No action proceeds without validation.</p>
+          <ul>
+            <li>Identity confidence</li>
+            <li>Permission scope</li>
+            <li>Intent alignment</li>
+            <li>Risk threshold compliance</li>
+            <li>Data minimization</li>
+            <li>Reversibility</li>
+            <li>Drift detection</li>
+          </ul>
+          <p>
+            If any gate fails, the action is blocked, logged, and requires
+            explicit confirmation.
+          </p>
+
+          <section class="section fade">
+            <h3>CORD — Counter-Operations &amp; Risk Detection</h3>
+            <p>
+              SENTINEL is not allowed to act freely. Every proposed action is
+              inspected by CORD — the forensic validation and enforcement layer
+              built into SENTINEL.
+            </p>
+
+            <p>
+              CORD exists to ensure that SENTINEL remains aligned with the
+              authenticated individual, that no external influence overrides
+              user intent, and that no action exceeds the granted permission
+              scope.
+            </p>
+
+            <h3>The 9-Step CORD v2 Pipeline</h3>
+            <pre><code>NORMALIZE → AUTHENTICATE → SCOPE CHECK → INTENT MATCH → CONSTITUTIONAL CHECK → RISK SCORE → DECISION → AUDIT → VERDICT</code></pre>
+            <ul>
+              <li>
+                <strong>Normalize:</strong> sanitize input, classify action type
+              </li>
+              <li>
+                <strong>Authenticate:</strong> verify intent lock exists and is
+                valid
+              </li>
+              <li>
+                <strong>Scope Check:</strong> paths, network targets, commands
+                within bounds
+              </li>
+              <li>
+                <strong>Intent Match:</strong> semantic alignment with declared
+                purpose
+              </li>
+              <li>
+                <strong>Constitutional Check:</strong> evaluate against all 11
+                SENTINEL articles
+              </li>
+              <li>
+                <strong>Risk Score:</strong> weighted composite with anomaly
+                amplification
+              </li>
+              <li>
+                <strong>Decision:</strong> ALLOW / CONTAIN / CHALLENGE / BLOCK
+              </li>
+              <li>
+                <strong>Audit:</strong> hash-chained append-only log entry
+              </li>
+              <li>
+                <strong>Verdict:</strong> structured result with reasoning +
+                alternatives
+              </li>
+            </ul>
+
+            <h3>What CORD Detects</h3>
+            <ul>
+              <li>Prompt injection attempts (regex pattern matching)</li>
+              <li>Data exfiltration (outbound data transfer detection)</li>
+              <li>
+                Secrets exposure (API keys, tokens, credentials, .env files)
+              </li>
+              <li>
+                Privilege escalation (high-impact verbs + elevated grants)
+              </li>
+              <li>
+                Irreversible operations (destructive actions without safety
+                indicators)
+              </li>
+              <li>
+                Moral violations (fraud, coercion, deception — instant BLOCK)
+              </li>
+              <li>
+                Constitutional drift (attempts to override Articles I–III —
+                instant BLOCK)
+              </li>
+              <li>
+                Financial risk (impulsive spending, missing ROI evaluation)
+              </li>
+              <li>Truth fabrication (manufactured data, fake results)</li>
+              <li>
+                Intent drift (proposal misaligned with declared session purpose)
+              </li>
+            </ul>
+
+            <h3>Decision Thresholds</h3>
+            <pre><code>Score &lt; 3.0   → ALLOW     (execute immediately)
 Score 3.0–4.99 → CONTAIN   (execute with monitoring)
 Score 5.0–6.99 → CHALLENGE (requires Principal confirmation)
 Score ≥ 7.0    → BLOCK     (prohibited, not executed)
 
 Hard blocks: Articles II, VII, VIII bypass scoring entirely.</code></pre>
 
-          <h3>Offline-First Enforcement</h3>
-          <p>
-            CORD runs locally.
-            Your data remains on your device.
-            No external system can directly execute operating-system actions.
-            All outbound requests pass through a zero-trust validation gate.
-          </p>
+            <h3>Offline-First Enforcement</h3>
+            <p>
+              CORD runs locally. Your data remains on your device. No external
+              system can directly execute operating-system actions. All outbound
+              requests pass through a zero-trust validation gate.
+            </p>
 
-          <h3>Intent Lock</h3>
-          <p>
-            SENTINEL requires an authenticated intent boundary.
-            Until intent is explicitly set and verified, SENTINEL operates in read-only restricted mode.
-            Actions outside that declared scope require escalation or are blocked entirely.
-            The intent lock binds: user ID, SHA-256 hashed passphrase, declared intent, and scope (allowed paths, commands, network targets).
-          </p>
+            <h3>Intent Lock</h3>
+            <p>
+              SENTINEL requires an authenticated intent boundary. Until intent
+              is explicitly set and verified, SENTINEL operates in read-only
+              restricted mode. Actions outside that declared scope require
+              escalation or are blocked entirely. The intent lock binds: user
+              ID, SHA-256 hashed passphrase, declared intent, and scope (allowed
+              paths, commands, network targets).
+            </p>
 
-          <h3>Audit as Authority</h3>
-          <p>
-            Every action, every validation decision, and every block is written to an append-only log.
-            Each entry is cryptographically chained to the previous entry via SHA-256:
-          </p>
-          <pre><code>entry_hash = SHA256(prev_hash + JSON(entry))
+            <h3>Audit as Authority</h3>
+            <p>
+              Every action, every validation decision, and every block is
+              written to an append-only log. Each entry is cryptographically
+              chained to the previous entry via SHA-256:
+            </p>
+            <pre><code>entry_hash = SHA256(prev_hash + JSON(entry))
 First entry: prev_hash = "GENESIS"</code></pre>
+            <p>
+              Tampering becomes detectable. Chain integrity can be verified at
+              any time. Transparency is not optional.
+            </p>
+
+            <p>
+              SENTINEL is not optimized for engagement. It is optimized for
+              alignment, containment, and outcome integrity.
+            </p>
+          </section>
+
+          <h3>5. EXECUTE</h3>
           <p>
-            Tampering becomes detectable. Chain integrity can be verified at any time.
-            Transparency is not optional.
+            If validated, SENTINEL executes at the lowest necessary level of
+            autonomy. Advisory by default. Automation only where explicitly
+            granted.
           </p>
 
+          <h3>6. AUDIT</h3>
           <p>
-            SENTINEL is not optimized for engagement.
-            It is optimized for alignment, containment, and outcome integrity.
+            Every proposal, decision, and execution is written to an append-only
+            log. The audit record is user-owned and reviewable.
           </p>
-        </section>
 
-        <h3>5. EXECUTE</h3>
-        <p>
-          If validated, SENTINEL executes at the lowest necessary level of autonomy.
-          Advisory by default. Automation only where explicitly granted.
-        </p>
+          <h3>7. LEARN</h3>
+          <p>
+            SENTINEL updates its user model only from measurable outcomes. It
+            learns from reality, not conversation length.
+          </p>
 
-        <h3>6. AUDIT</h3>
-        <p>
-          Every proposal, decision, and execution is written to an append-only log.
-          The audit record is user-owned and reviewable.
-        </p>
+          <hr />
 
-        <h3>7. LEARN</h3>
-        <p>
-          SENTINEL updates its user model only from measurable outcomes.
-          It learns from reality, not conversation length.
-        </p>
+          <h2>Formal Model of SENTINEL</h2>
 
-        <hr>
+          <p>
+            SENTINEL can be described as a constrained decision system operating
+            over a personalized state space.
+          </p>
 
-        <h2>Formal Model of SENTINEL</h2>
-
-        <p>
-          SENTINEL can be described as a constrained decision system
-          operating over a personalized state space.
-        </p>
-
-        <pre><code>
+          <pre><code>
 Let:
 
 S_t = User state at time t
@@ -256,41 +479,41 @@ D(a) = Drift score
 L_t = Immutable audit log
         </code></pre>
 
-        <h3>State Update</h3>
-        <pre><code>
+          <h3>State Update</h3>
+          <pre><code>
 S_t = f(user inputs, context, history, constraints)
 
 M_t = g(M_{t-1}, S_t, outcomes)
         </code></pre>
 
-        <h3>Action Scoring</h3>
-        <pre><code>
+          <h3>Action Scoring</h3>
+          <pre><code>
 Score(a) = R(a) - C(a)
         </code></pre>
 
-        <h3>Validation Conditions</h3>
-        <pre><code>
+          <h3>Validation Conditions</h3>
+          <pre><code>
 P(a) = 1
 I(a) ≥ θ_intent
 D(a) ≤ θ_drift
 Risk(a) ≤ θ_risk
         </code></pre>
 
-        <p>If any condition fails, Execute(a) = 0 and the event is logged.</p>
+          <p>If any condition fails, Execute(a) = 0 and the event is logged.</p>
 
-        <h3>Execution</h3>
-        <pre><code>
+          <h3>Execution</h3>
+          <pre><code>
 a* = argmax Score(a)
 Outcome_t = Execute(a*)
         </code></pre>
 
-        <h3>Learning</h3>
-        <pre><code>
+          <h3>Learning</h3>
+          <pre><code>
 M_{t+1} = Update(M_t, Outcome_t)
         </code></pre>
 
-        <h3>Optimization Objective</h3>
-        <pre><code>
+          <h3>Optimization Objective</h3>
+          <pre><code>
 Maximize Σ U(S_t, M_t)
 Subject to:
 - Permission constraints
@@ -299,223 +522,344 @@ Subject to:
 - Drift containment
 - User sovereignty
         </code></pre>
+        </div>
+      </section>
 
-      </div>
-    </section>
+      <section class="section fade">
+        <h2>Deployment Architecture — Local Sovereignty Model</h2>
 
-    <section class="section fade">
-      <h2>Deployment Architecture — Local Sovereignty Model</h2>
+        <p>
+          SENTINEL operates under a hybrid model: local sovereignty by default,
+          cloud acceleration by permission.
+        </p>
 
-      <p>
-        SENTINEL operates under a hybrid model:
-        local sovereignty by default, cloud acceleration by permission.
-      </p>
+        <h3>1. Local Core (Always On)</h3>
+        <ul>
+          <li>User identity verification and confidence scoring</li>
+          <li>Permission enforcement and scope control</li>
+          <li>Integrity validation gate</li>
+          <li>Drift detection</li>
+          <li>Encrypted user model storage</li>
+          <li>Immutable audit logging</li>
+        </ul>
 
-      <h3>1. Local Core (Always On)</h3>
-      <ul>
-        <li>User identity verification and confidence scoring</li>
-        <li>Permission enforcement and scope control</li>
-        <li>Integrity validation gate</li>
-        <li>Drift detection</li>
-        <li>Encrypted user model storage</li>
-        <li>Immutable audit logging</li>
-      </ul>
+        <p>
+          The Local Core is the authority layer. It cannot be overridden by
+          external services. It enforces all validation before any action
+          occurs.
+        </p>
 
-      <p>
-        The Local Core is the authority layer.
-        It cannot be overridden by external services.
-        It enforces all validation before any action occurs.
-      </p>
+        <h3>2. Cloud Acceleration (Optional)</h3>
+        <ul>
+          <li>Large-scale reasoning tasks</li>
+          <li>Long-form synthesis</li>
+          <li>Heavy compute operations</li>
+          <li>Model augmentation</li>
+        </ul>
 
-      <h3>2. Cloud Acceleration (Optional)</h3>
-      <ul>
-        <li>Large-scale reasoning tasks</li>
-        <li>Long-form synthesis</li>
-        <li>Heavy compute operations</li>
-        <li>Model augmentation</li>
-      </ul>
+        <p>Cloud usage is:</p>
+        <ul>
+          <li>Explicitly authorized</li>
+          <li>Minimal-context only</li>
+          <li>Redacted when possible</li>
+          <li>Blocked if integrity gates fail</li>
+        </ul>
 
-      <p>
-        Cloud usage is:
-      </p>
-      <ul>
-        <li>Explicitly authorized</li>
-        <li>Minimal-context only</li>
-        <li>Redacted when possible</li>
-        <li>Blocked if integrity gates fail</li>
-      </ul>
+        <h3>3. Zero-Trust Mediation</h3>
+        <p>
+          All communication between Local Core and Cloud services passes through
+          the Integrity Gate. No direct execution path exists.
+        </p>
 
-      <h3>3. Zero-Trust Mediation</h3>
-      <p>
-        All communication between Local Core and Cloud services passes through
-        the Integrity Gate. No direct execution path exists.
-      </p>
-
-      <pre><code>
+        <pre><code>
 User → Local Core → Integrity Gate → (Optional) Cloud → Return → Validate → Execute
       </code></pre>
 
-      <h3>Principle</h3>
-      <p>
-        Local sovereignty. Cloud acceleration. Zero-trust enforcement.
-      </p>
-      <p>Local enforcement + optional user-controlled export.</p>
-    </section>
+        <h3>Principle</h3>
+        <p>Local sovereignty. Cloud acceleration. Zero-trust enforcement.</p>
+        <p>Local enforcement + optional user-controlled export.</p>
+      </section>
 
-    <section class="section fade">
-      <h2>Execution Authority — OS Control Model</h2>
+      <section class="section fade">
+        <h2>Execution Authority — OS Control Model</h2>
 
-      <p>
-        SENTINEL is not a chatbot. It is a Local Core that can mediate and execute operating-system actions — but only within a user-approved permission scope.
-        Its job is to enforce the user’s intent, block misuse, and keep a permanent audit trail.
-      </p>
+        <p>
+          SENTINEL is not a chatbot. It is a Local Core that can mediate and
+          execute operating-system actions — but only within a user-approved
+          permission scope. Its job is to enforce the user’s intent, block
+          misuse, and keep a permanent audit trail.
+        </p>
 
-      <h3>Local Core (Authority Layer)</h3>
-      <ul>
-        <li><strong>Identity binding:</strong> continuously verifies the authenticated user context</li>
-        <li><strong>Permissions:</strong> explicit scopes for files, apps, network, and accounts</li>
-        <li><strong>Integrity Gate:</strong> validates every request before execution</li>
-        <li><strong>Policy engine:</strong> rules + risk thresholds + deny-by-default</li>
-        <li><strong>Encrypted memory:</strong> local storage of the user model and preferences</li>
-        <li><strong>Audit log:</strong> append-only record of every access and action</li>
-      </ul>
+        <h3>Local Core (Authority Layer)</h3>
+        <ul>
+          <li>
+            <strong>Identity binding:</strong> continuously verifies the
+            authenticated user context
+          </li>
+          <li>
+            <strong>Permissions:</strong> explicit scopes for files, apps,
+            network, and accounts
+          </li>
+          <li>
+            <strong>Integrity Gate:</strong> validates every request before
+            execution
+          </li>
+          <li>
+            <strong>Policy engine:</strong> rules + risk thresholds +
+            deny-by-default
+          </li>
+          <li>
+            <strong>Encrypted memory:</strong> local storage of the user model
+            and preferences
+          </li>
+          <li>
+            <strong>Audit log:</strong> append-only record of every access and
+            action
+          </li>
+        </ul>
 
-      <h3>Integrity Gate (Zero-Trust Enforcement)</h3>
-      <p>
-        No direct execution path exists from an external model to the operating system.
-        All outputs must pass verification, boundary checks, and risk scoring before any OS action is allowed.
-      </p>
+        <h3>Integrity Gate (Zero-Trust Enforcement)</h3>
+        <p>
+          No direct execution path exists from an external model to the
+          operating system. All outputs must pass verification, boundary checks,
+          and risk scoring before any OS action is allowed.
+        </p>
 
-      <pre><code>
+        <pre><code>
 User → Local Core → Integrity Gate → (Optional) External Acceleration → Return → Validate → Execute
       </code></pre>
 
-      <h3>External Acceleration (Optional)</h3>
-      <ul>
-        <li>Used only for heavy reasoning or synthesis</li>
-        <li>Receives minimal context (redacted when possible)</li>
-        <li>Never receives direct control of OS actions</li>
-        <li>Blocked automatically if integrity checks fail</li>
-      </ul>
+        <h3>External Acceleration (Optional)</h3>
+        <ul>
+          <li>Used only for heavy reasoning or synthesis</li>
+          <li>Receives minimal context (redacted when possible)</li>
+          <li>Never receives direct control of OS actions</li>
+          <li>Blocked automatically if integrity checks fail</li>
+        </ul>
 
-      <h3>Principle</h3>
-      <p>
-        Local authority. Optional acceleration. Zero-trust execution.
-      </p>
-    </section>
+        <h3>Principle</h3>
+        <p>Local authority. Optional acceleration. Zero-trust execution.</p>
+      </section>
 
-    <section class="section fade">
-      <div class="meta" style="letter-spacing:0.25em;text-transform:uppercase;font-size:0.75rem;margin-bottom:0.75rem;color:var(--grey);">
-        Execution Model
-      </div>
-      <h2>SENTINEL as the Command Mediator</h2>
+      <section class="section fade">
+        <div
+          class="meta"
+          style="
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            margin-bottom: 0.75rem;
+            color: var(--grey);
+          "
+        >
+          Execution Model
+        </div>
+        <h2>SENTINEL as the Command Mediator</h2>
 
-      <p>
-        SENTINEL does not “take over” your system. It becomes the gate in front of system actions.
-        Instead of running commands directly, commands are routed through SENTINEL and inspected by CORD
-        before anything executes.
-      </p>
-
-      <div class="section" style="margin:1.5rem 0; padding:1.5rem; border:1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.02);">
-        <p class="meta" style="margin:0; line-height:1.9; color:#ccc;">
-          <strong style="color:var(--white);">Instead of:</strong><br>
-          <span style="color:#999;">rm -rf ~/Downloads/junk</span><br><br>
-          <strong style="color:var(--white);">You run:</strong><br>
-          <span style="color:#999;">cord rm -rf ~/Downloads/junk</span>
+        <p>
+          SENTINEL does not “take over” your system. It becomes the gate in
+          front of system actions. Instead of running commands directly,
+          commands are routed through SENTINEL and inspected by CORD before
+          anything executes.
         </p>
-      </div>
 
-      <h3>CORD Enforcement Rules</h3>
-      <ul class="list">
-        <li><strong>Default Deny:</strong> actions are blocked unless explicitly permitted.</li>
-        <li><strong>Intent Lock:</strong> SENTINEL must have a declared objective + scope before it can act.</li>
-        <li><strong>Permission Boundaries:</strong> filesystem/network/process access is scoped and enforced.</li>
-        <li><strong>Irreversible Guard:</strong> destructive operations require an explicit confirmation step.</li>
-        <li><strong>No Silent Network:</strong> outbound calls require validation and user-visible justification.</li>
-        <li><strong>Audit as Authority:</strong> every allow/block is logged in an append-only chain.</li>
-      </ul>
+        <div
+          class="section"
+          style="
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(255, 255, 255, 0.02);
+          "
+        >
+          <p class="meta" style="margin: 0; line-height: 1.9; color: #ccc">
+            <strong style="color: var(--white)">Instead of:</strong><br />
+            <span style="color: #999">rm -rf ~/Downloads/junk</span><br /><br />
+            <strong style="color: var(--white)">You run:</strong><br />
+            <span style="color: #999">cord rm -rf ~/Downloads/junk</span>
+          </p>
+        </div>
 
-      <h3>Offline-First</h3>
-      <p>
-        CORD runs locally. Your data remains on your device.
-        The mediator is built to function offline as the default state — connectivity is a choice, not a dependency.
-      </p>
-
-      <p class="meta" style="color:#ccc;">
-        This is how a personal intelligence gains capability without becoming a liability:
-        power routed through verification, and verification rooted in the user.
-      </p>
-    </section>
-
-    <section class="section fade">
-      <h2>Algorithms</h2>
-
-      <div class="section" style="margin: 0 0 18px;">
-        <h3>Algorithm 1 — SENTINEL Partner Loop (personal intelligence)</h3>
-        <p class="meta">Observe → Assess → Decide → Plan → Request → Act → Measure → Learn</p>
+        <h3>CORD Enforcement Rules</h3>
         <ul class="list">
-          <li>Observe: authorized local context</li>
-          <li>Assess: current state + constraints</li>
-          <li>Decide: highest-value move</li>
-          <li>Plan: minimal plan + fallback</li>
-          <li>Request: permissions/confirm if needed</li>
-          <li>Act: execute only through Core</li>
-          <li>Measure: outcomes + feedback</li>
-          <li>Learn: update user model + thresholds</li>
+          <li>
+            <strong>Default Deny:</strong> actions are blocked unless explicitly
+            permitted.
+          </li>
+          <li>
+            <strong>Intent Lock:</strong> SENTINEL must have a declared
+            objective + scope before it can act.
+          </li>
+          <li>
+            <strong>Permission Boundaries:</strong> filesystem/network/process
+            access is scoped and enforced.
+          </li>
+          <li>
+            <strong>Irreversible Guard:</strong> destructive operations require
+            an explicit confirmation step.
+          </li>
+          <li>
+            <strong>No Silent Network:</strong> outbound calls require
+            validation and user-visible justification.
+          </li>
+          <li>
+            <strong>Audit as Authority:</strong> every allow/block is logged in
+            an append-only chain.
+          </li>
         </ul>
-      </div>
 
-      <div class="section" style="margin: 0;">
-        <h3>Algorithm 2 — Core/CORD v2 Protector Loop (counter-AI intelligence)</h3>
-        <p class="meta">Normalize → Authenticate → Scope Check → Intent Match → Constitutional Check → Risk Score → Decision → Audit → Verdict</p>
-        <p class="meta">Decision outcomes: ALLOW / CONTAIN / CHALLENGE / BLOCK</p>
-        <ul class="list">
-          <li>Constitutional Check evaluates all 11 SENTINEL articles per proposal</li>
-          <li>Weighted scoring with anomaly amplification across dimensions</li>
-          <li>Hard blocks on moral violations (Art II), security threats (Art VII), drift attempts (Art VIII)</li>
-          <li>No outbound network without explicit allowlist</li>
-          <li>No credential/keychain access without explicit approval</li>
-          <li>No destructive/irreversible ops without confirmation + preview</li>
-          <li>Intent mismatch = CHALLENGE or BLOCK</li>
-          <li>Every decision hash-chained to append-only audit log</li>
-        </ul>
-      </div>
+        <h3>Offline-First</h3>
+        <p>
+          CORD runs locally. Your data remains on your device. The mediator is
+          built to function offline as the default state — connectivity is a
+          choice, not a dependency.
+        </p>
 
-      <div class="section" style="margin: 18px 0 0;">
-        <h3>CORD v2 Constitutional Dimensions</h3>
-        <p class="meta">Each SENTINEL article maps to a CORD evaluation dimension with configurable weights:</p>
-        <ul class="list">
-          <li><strong>long_term_alignment</strong> (w:3) — Art I: short-term bias detection</li>
-          <li><strong>moral_check</strong> (w:5) — Art II: hard block on fraud, harm, coercion</li>
-          <li><strong>truth_check</strong> (w:2) — Art III: fabrication and manufactured certainty</li>
-          <li><strong>consequence_analysis</strong> (w:3) — Art IV: second-order effects</li>
-          <li><strong>sustainability_check</strong> (w:2) — Art V: capacity and burnout limits</li>
-          <li><strong>financial_risk</strong> (w:3) — Art VI: ROI, solvency, impulse detection</li>
-          <li><strong>security_check</strong> (w:4) — Art VII: injection, exfil, privilege, secrets</li>
-          <li><strong>drift_check</strong> (w:2) — Art VIII: immutable core protection</li>
-          <li><strong>evaluation_framework</strong> (w:3) — Art IX: six-question gate</li>
-          <li><strong>temperament_check</strong> (w:1) — Art X: escalation detection</li>
-          <li><strong>identity_check</strong> (w:1) — Art XI: role integrity</li>
-        </ul>
-      </div>
-    </section>
+        <p class="meta" style="color: #ccc">
+          This is how a personal intelligence gains capability without becoming
+          a liability: power routed through verification, and verification
+          rooted in the user.
+        </p>
+      </section>
 
-    <footer class="fade">Architecture · SENTINEL</footer>
-  </main>
+      <section class="section fade">
+        <h2>Algorithms</h2>
 
-  <script>
-    (() => {
-      const navLinks = document.querySelector('.nav-links');
-      const toggle = document.querySelector('.menu-toggle');
-      if (toggle && navLinks) {
-        toggle.addEventListener('click', () => navLinks.classList.toggle('open'));
-        navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => navLinks.classList.remove('open')));
-      }
-      const observer = new IntersectionObserver(entries => {
-        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); });
-      }, { threshold: 0.15 });
-      document.querySelectorAll('.fade').forEach(el => observer.observe(el));
-    })();
-  </script>
-</body>
+        <div class="section" style="margin: 0 0 18px">
+          <h3>Algorithm 1 — SENTINEL Partner Loop (personal intelligence)</h3>
+          <p class="meta">
+            Observe → Assess → Decide → Plan → Request → Act → Measure → Learn
+          </p>
+          <ul class="list">
+            <li>Observe: authorized local context</li>
+            <li>Assess: current state + constraints</li>
+            <li>Decide: highest-value move</li>
+            <li>Plan: minimal plan + fallback</li>
+            <li>Request: permissions/confirm if needed</li>
+            <li>Act: execute only through Core</li>
+            <li>Measure: outcomes + feedback</li>
+            <li>Learn: update user model + thresholds</li>
+          </ul>
+        </div>
+
+        <div class="section" style="margin: 0">
+          <h3>
+            Algorithm 2 — Core/CORD v2 Protector Loop (counter-AI intelligence)
+          </h3>
+          <p class="meta">
+            Normalize → Authenticate → Scope Check → Intent Match →
+            Constitutional Check → Risk Score → Decision → Audit → Verdict
+          </p>
+          <p class="meta">
+            Decision outcomes: ALLOW / CONTAIN / CHALLENGE / BLOCK
+          </p>
+          <ul class="list">
+            <li>
+              Constitutional Check evaluates all 11 SENTINEL articles per
+              proposal
+            </li>
+            <li>
+              Weighted scoring with anomaly amplification across dimensions
+            </li>
+            <li>
+              Hard blocks on moral violations (Art II), security threats (Art
+              VII), drift attempts (Art VIII)
+            </li>
+            <li>No outbound network without explicit allowlist</li>
+            <li>No credential/keychain access without explicit approval</li>
+            <li>
+              No destructive/irreversible ops without confirmation + preview
+            </li>
+            <li>Intent mismatch = CHALLENGE or BLOCK</li>
+            <li>Every decision hash-chained to append-only audit log</li>
+          </ul>
+        </div>
+
+        <div class="section" style="margin: 18px 0 0">
+          <h3>CORD v2 Constitutional Dimensions</h3>
+          <p class="meta">
+            Each SENTINEL article maps to a CORD evaluation dimension with
+            configurable weights:
+          </p>
+          <ul class="list">
+            <li>
+              <strong>long_term_alignment</strong> (w:3) — Art I: short-term
+              bias detection
+            </li>
+            <li>
+              <strong>moral_check</strong> (w:5) — Art II: hard block on fraud,
+              harm, coercion
+            </li>
+            <li>
+              <strong>truth_check</strong> (w:2) — Art III: fabrication and
+              manufactured certainty
+            </li>
+            <li>
+              <strong>consequence_analysis</strong> (w:3) — Art IV: second-order
+              effects
+            </li>
+            <li>
+              <strong>sustainability_check</strong> (w:2) — Art V: capacity and
+              burnout limits
+            </li>
+            <li>
+              <strong>financial_risk</strong> (w:3) — Art VI: ROI, solvency,
+              impulse detection
+            </li>
+            <li>
+              <strong>security_check</strong> (w:4) — Art VII: injection, exfil,
+              privilege, secrets
+            </li>
+            <li>
+              <strong>drift_check</strong> (w:2) — Art VIII: immutable core
+              protection
+            </li>
+            <li>
+              <strong>evaluation_framework</strong> (w:3) — Art IX: six-question
+              gate
+            </li>
+            <li>
+              <strong>temperament_check</strong> (w:1) — Art X: escalation
+              detection
+            </li>
+            <li>
+              <strong>identity_check</strong> (w:1) — Art XI: role integrity
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <footer class="fade">Architecture · SENTINEL</footer>
+    </main>
+
+    <script>
+      (() => {
+        const navLinks = document.querySelector(".nav-links");
+        const toggle = document.querySelector(".menu-toggle");
+        if (toggle && navLinks) {
+          toggle.addEventListener("click", () =>
+            navLinks.classList.toggle("open"),
+          );
+          navLinks
+            .querySelectorAll("a")
+            .forEach((link) =>
+              link.addEventListener("click", () =>
+                navLinks.classList.remove("open"),
+              ),
+            );
+        }
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) entry.target.classList.add("visible");
+            });
+          },
+          { threshold: 0.15 },
+        );
+        document
+          .querySelectorAll(".fade")
+          .forEach((el) => observer.observe(el));
+      })();
+    </script>
+  </body>
 </html>

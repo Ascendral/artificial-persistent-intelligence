@@ -15,24 +15,24 @@
  * Zero external dependencies.
  */
 
-const crypto = require('crypto');
+const crypto = require("crypto");
 
 // Zero-width Unicode characters used for steganographic canaries
 // These are invisible in rendered text but present in raw strings
 const ZW_CHARS = [
-  '\u200B', // Zero Width Space
-  '\u200C', // Zero Width Non-Joiner
-  '\u200D', // Zero Width Joiner
-  '\uFEFF', // Zero Width No-Break Space
+  "\u200B", // Zero Width Space
+  "\u200C", // Zero Width Non-Joiner
+  "\u200D", // Zero Width Joiner
+  "\uFEFF", // Zero Width No-Break Space
 ];
 
 // Map bit value → zero-width char
-const ZW_MAP = { '0': ZW_CHARS[0], '1': ZW_CHARS[1] };
+const ZW_MAP = { 0: ZW_CHARS[0], 1: ZW_CHARS[1] };
 // Separator between canary bits
 const ZW_SEP = ZW_CHARS[2];
 // Canary start/end markers
 const ZW_START = ZW_CHARS[3];
-const ZW_END = '\u200C\u200B'; // ZWNJ + ZWSP combination
+const ZW_END = "\u200C\u200B"; // ZWNJ + ZWSP combination
 
 /**
  * Encode a short string as a zero-width character sequence.
@@ -40,12 +40,20 @@ const ZW_END = '\u200C\u200B'; // ZWNJ + ZWSP combination
  * @returns {string} Zero-width encoded string
  */
 function encodeZeroWidth(data) {
-  if (!data || typeof data !== 'string' || data.length === 0) return '';
-  const bits = Buffer.from(data).toString('binary')
-    .split('')
-    .map(c => c.charCodeAt(0).toString(2).padStart(8, '0'))
-    .join('');
-  return ZW_START + bits.split('').map(b => ZW_MAP[b]).join(ZW_SEP) + ZW_END;
+  if (!data || typeof data !== "string" || data.length === 0) return "";
+  const bits = Buffer.from(data)
+    .toString("binary")
+    .split("")
+    .map((c) => c.charCodeAt(0).toString(2).padStart(8, "0"))
+    .join("");
+  return (
+    ZW_START +
+    bits
+      .split("")
+      .map((b) => ZW_MAP[b])
+      .join(ZW_SEP) +
+    ZW_END
+  );
 }
 
 /**
@@ -54,15 +62,15 @@ function encodeZeroWidth(data) {
  * @returns {string|null} Decoded canary string, or null if not found
  */
 function detectZeroWidth(text) {
-  if (!text || typeof text !== 'string') return null;
+  if (!text || typeof text !== "string") return null;
   const startIdx = text.indexOf(ZW_START);
   const endMarker = text.indexOf(ZW_END);
   if (startIdx === -1 || endMarker === -1 || endMarker <= startIdx) return null;
 
   const payload = text.slice(startIdx + ZW_START.length, endMarker);
-  const bits = payload.split(ZW_SEP).map(c => {
-    if (c === ZW_MAP['0']) return '0';
-    if (c === ZW_MAP['1']) return '1';
+  const bits = payload.split(ZW_SEP).map((c) => {
+    if (c === ZW_MAP["0"]) return "0";
+    if (c === ZW_MAP["1"]) return "1";
     return null;
   });
 
@@ -71,9 +79,9 @@ function detectZeroWidth(text) {
   try {
     const bytes = [];
     for (let i = 0; i < bits.length; i += 8) {
-      bytes.push(parseInt(bits.slice(i, i + 8).join(''), 2));
+      bytes.push(parseInt(bits.slice(i, i + 8).join(""), 2));
     }
-    return Buffer.from(bytes).toString('binary');
+    return Buffer.from(bytes).toString("binary");
   } catch {
     return null;
   }
@@ -84,7 +92,7 @@ function detectZeroWidth(text) {
  * @returns {string} 8-char hex ID
  */
 function generateCanaryId() {
-  return crypto.randomBytes(4).toString('hex');
+  return crypto.randomBytes(4).toString("hex");
 }
 
 /**
@@ -121,22 +129,23 @@ class CanaryRegistry {
    */
   plant(options = {}) {
     const canaryId = generateCanaryId();
-    const types = options.types || ['uuid', 'zeroWidth', 'honey'];
-    const sessionId = options.sessionId || 'default';
+    const types = options.types || ["uuid", "zeroWidth", "honey"];
+    const sessionId = options.sessionId || "default";
 
-    const templateFn = HONEY_TEMPLATES[Math.floor(Math.random() * HONEY_TEMPLATES.length)];
+    const templateFn =
+      HONEY_TEMPLATES[Math.floor(Math.random() * HONEY_TEMPLATES.length)];
 
     const tokens = {};
 
-    if (types.includes('uuid')) {
+    if (types.includes("uuid")) {
       tokens.uuid = `vigil-${canaryId}`;
     }
 
-    if (types.includes('zeroWidth')) {
+    if (types.includes("zeroWidth")) {
       tokens.zeroWidth = encodeZeroWidth(canaryId);
     }
 
-    if (types.includes('honey')) {
+    if (types.includes("honey")) {
       tokens.honey = templateFn(canaryId);
     }
 
@@ -160,7 +169,7 @@ class CanaryRegistry {
       sessionId,
       types,
       tokens,
-      injectText: injectParts.join(''),
+      injectText: injectParts.join(""),
       plantedAt: Date.now(),
       triggered: false,
       detectedAt: null,
@@ -184,7 +193,7 @@ class CanaryRegistry {
    * @param {string} [context] — where this text came from
    * @returns {object} { triggered: boolean, detections: array, severity: number }
    */
-  scan(text, context = 'output') {
+  scan(text, context = "output") {
     const triggered = [];
 
     for (const [canaryId, canary] of this.canaries) {
@@ -196,13 +205,13 @@ class CanaryRegistry {
       // Check UUID canary
       if (canary.tokens.uuid && text.includes(canary.tokens.uuid)) {
         detected = true;
-        matchedTypes.push('uuid');
+        matchedTypes.push("uuid");
       }
 
       // Check honey phrase
       if (canary.tokens.honey && text.includes(canary.tokens.honey)) {
         detected = true;
-        matchedTypes.push('honey');
+        matchedTypes.push("honey");
       }
 
       // Check zero-width canary
@@ -210,7 +219,7 @@ class CanaryRegistry {
         const decoded = detectZeroWidth(text);
         if (decoded === canaryId) {
           detected = true;
-          matchedTypes.push('zeroWidth');
+          matchedTypes.push("zeroWidth");
         }
       }
 
@@ -228,9 +237,10 @@ class CanaryRegistry {
           detectedAt: canary.detectedAt,
           latencyMs: canary.detectedAt - canary.plantedAt,
           severity: 10, // Canary detection is always max severity
-          threat: 'SYSTEM_PROMPT_EXTRACTION',
-          message: `Canary triggered: system prompt content detected in ${context}. ` +
-            `Matched ${matchedTypes.join(', ')} canary type(s). ` +
+          threat: "SYSTEM_PROMPT_EXTRACTION",
+          message:
+            `Canary triggered: system prompt content detected in ${context}. ` +
+            `Matched ${matchedTypes.join(", ")} canary type(s). ` +
             `Planted ${Math.round(canary.latencyMs / 1000)}s ago.`,
         };
 
@@ -244,7 +254,7 @@ class CanaryRegistry {
       detections: triggered,
       severity: triggered.length > 0 ? 10 : 0,
       // Hard block — canary triggered means confirmed extraction, no debate
-      decision: triggered.length > 0 ? 'BLOCK' : null,
+      decision: triggered.length > 0 ? "BLOCK" : null,
     };
   }
 

@@ -17,7 +17,8 @@ const { evaluateProposal } = require("../cord");
 function extractTaskText(task) {
   if (typeof task === "string") return task;
   if (task && task.description) return task.description;
-  if (task && task.expected_output) return `${task.description || ""}\n${task.expected_output}`;
+  if (task && task.expected_output)
+    return `${task.description || ""}\n${task.expected_output}`;
   return JSON.stringify(task);
 }
 

@@ -24,9 +24,9 @@ const patterns = {
     /\bunrestricted\s+mode\b/gi,
     /from\s+now\s+on\s+you\s+(are|will|must)/gi,
     /your\s+new\s+(role|purpose|mission|goal)\s+is/gi,
-    /<\|.*?\|>/g,           // Token injection markers
+    /<\|.*?\|>/g, // Token injection markers
     /\[INST\]|\[\/INST\]/g, // Instruction markers
-    /\[SYSTEM\]/gi,         // System block injection
+    /\[SYSTEM\]/gi, // System block injection
     /###\s*(system|instruction)/gi,
     /bypass\s+(all\s+)?(restrictions?|safeguards?|security|safety|protections?|filters?)/gi,
     /give\s+me\s+(admin|root|system|superuser)\s+access/gi,
@@ -48,8 +48,8 @@ const patterns = {
     /httpx\.post\(/gi,
     /urllib/gi,
     /\bnc\s+.{0,40}\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/gi, // netcat to IP
-    /scp\s+.*@/gi,                  // scp to remote
-    /rsync\s+.*@/gi,                // rsync to remote
+    /scp\s+.*@/gi, // scp to remote
+    /rsync\s+.*@/gi, // rsync to remote
   ],
 
   // ── Manipulation and deception ──────────────────────────────────────────
@@ -80,10 +80,10 @@ const patterns = {
     /\.\s*constructor\s*\(\s*['"`]/gi,
     /String\.fromCharCode\s*\(/gi,
     /unescape\s*\(/gi,
-    /\\x[0-9a-f]{2}/gi,            // Hex escape sequences
-    /\\u[0-9a-f]{4}/gi,            // Unicode escape sequences
-    /data:\s*text\/html/gi,         // Data URI payloads
-    /&#x?[0-9a-f]+;/gi,            // HTML entity encoding
+    /\\x[0-9a-f]{2}/gi, // Hex escape sequences
+    /\\u[0-9a-f]{4}/gi, // Unicode escape sequences
+    /data:\s*text\/html/gi, // Data URI payloads
+    /&#x?[0-9a-f]+;/gi, // HTML entity encoding
   ],
 
   // ── Dangerous operations ────────────────────────────────────────────────
@@ -107,7 +107,7 @@ const patterns = {
     /mkfs\./gi,
     /dd\s+if=.*of=\/dev\//gi,
     /chmod\s+-R\s+777/gi,
-    /:\(\)\s*\{[^}]*:\|:.*\}/g,    // Fork bomb
+    /:\(\)\s*\{[^}]*:\|:.*\}/g, // Fork bomb
   ],
 
   // ── Agent & tool-chain attacks (emerging 2025+) ─────────────────────────
@@ -129,9 +129,9 @@ const patterns = {
     /https?:\/\/[^\/\s]*hack[^\/\s]*/gi,
     /https?:\/\/[^\/\s]*phish[^\/\s]*/gi,
     /https?:\/\/[^\/\s]*attacker[^\/\s]*/gi,
-    /https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/gi,  // Raw IP addresses
-    /https?:\/\/[^\/\s]*\.onion\b/gi,                      // Tor hidden services
-    /https?:\/\/[^\/\s]*ngrok/gi,                           // Tunneling services
+    /https?:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/gi, // Raw IP addresses
+    /https?:\/\/[^\/\s]*\.onion\b/gi, // Tor hidden services
+    /https?:\/\/[^\/\s]*ngrok/gi, // Tunneling services
   ],
 };
 
@@ -147,7 +147,12 @@ const categoryWeights = {
 };
 
 // Critical categories that trigger immediate BLOCK
-const criticalCategories = ['injection', 'exfil', 'manipulation', 'agentAttacks'];
+const criticalCategories = [
+  "injection",
+  "exfil",
+  "manipulation",
+  "agentAttacks",
+];
 
 module.exports = {
   patterns,

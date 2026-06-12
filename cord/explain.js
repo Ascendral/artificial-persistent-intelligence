@@ -8,17 +8,20 @@
 const DIMENSION_EXPLANATIONS = {
   moralCheck: {
     short: "Moral violation",
-    message: "This proposal contains a pattern associated with fraud, extortion, blackmail, coercion, or behavioral threats.",
+    message:
+      "This proposal contains a pattern associated with fraud, extortion, blackmail, coercion, or behavioral threats.",
     fix: "Remove conditional threats, impersonation attempts, or requests to deceive or harm others.",
   },
   promptInjection: {
     short: "Prompt injection",
-    message: "This proposal contains an instruction override pattern — it appears to be attempting to hijack the agent's behavior.",
+    message:
+      "This proposal contains an instruction override pattern — it appears to be attempting to hijack the agent's behavior.",
     fix: "Remove override phrases like 'ignore previous instructions', 'you are now', or jailbreak mode requests.",
   },
   driftCheck: {
     short: "Protocol drift",
-    message: "This proposal attempts to bypass or disable CORD safety protocols.",
+    message:
+      "This proposal attempts to bypass or disable CORD safety protocols.",
     fix: "Remove references to overriding safety rules, disabling checks, or modifying core values.",
   },
   injection: {
@@ -33,17 +36,20 @@ const DIMENSION_EXPLANATIONS = {
   },
   privilege: {
     short: "Privilege escalation",
-    message: "This proposal requests elevated permissions or contains high-impact destructive operations.",
+    message:
+      "This proposal requests elevated permissions or contains high-impact destructive operations.",
     fix: "Remove dangerous verbs (delete, wipe, terminate, shutdown) or reduce required grants.",
   },
   identityCheck: {
     short: "Identity violation",
-    message: "This proposal attempts to impersonate a human or claim a false identity.",
+    message:
+      "This proposal attempts to impersonate a human or claim a false identity.",
     fix: "Remove claims to be human, masquerade attempts, or impersonation language.",
   },
   piiLeakage: {
     short: "PII detected",
-    message: "This proposal contains personally identifiable information (SSN, credit card, email, or phone number).",
+    message:
+      "This proposal contains personally identifiable information (SSN, credit card, email, or phone number).",
     fix: "Redact PII before including it in proposals. Use placeholders or tokenized references instead.",
   },
   irreversibility: {
@@ -58,31 +64,35 @@ const DIMENSION_EXPLANATIONS = {
   },
   anomaly: {
     short: "Anomaly amplification",
-    message: "Multiple risk dimensions are flagging simultaneously — the combined signal exceeds safe thresholds.",
+    message:
+      "Multiple risk dimensions are flagging simultaneously — the combined signal exceeds safe thresholds.",
     fix: "Address the individual risk dimensions listed above.",
   },
   toolRisk: {
     short: "High-risk tool",
-    message: "This tool carries an elevated baseline risk for this type of action.",
+    message:
+      "This tool carries an elevated baseline risk for this type of action.",
     fix: "Ensure the operation is within the declared session scope and has explicit intent lock coverage.",
   },
   "Intent not locked": {
     short: "No intent lock",
-    message: "No session intent has been declared — CORD is operating in restricted mode.",
+    message:
+      "No session intent has been declared — CORD is operating in restricted mode.",
     fix: "Call setIntentLock() before evaluating proposals to establish session scope and unlock full ALLOW capability.",
   },
   "Out of scope": {
     short: "Out of scope",
-    message: "This action targets a path, command, or network destination outside the declared session scope.",
+    message:
+      "This action targets a path, command, or network destination outside the declared session scope.",
     fix: "Check your session's allowPaths, allowCommands, and allowNetworkTargets, or update the intent lock scope.",
   },
 };
 
 const DECISION_CONTEXT = {
-  ALLOW:     { label: "Allowed",   color: "green",  icon: "✅" },
-  CONTAIN:   { label: "Contained", color: "yellow", icon: "🟡" },
+  ALLOW: { label: "Allowed", color: "green", icon: "✅" },
+  CONTAIN: { label: "Contained", color: "yellow", icon: "🟡" },
   CHALLENGE: { label: "Challenge", color: "orange", icon: "🟠" },
-  BLOCK:     { label: "Blocked",   color: "red",    icon: "🚫" },
+  BLOCK: { label: "Blocked", color: "red", icon: "🚫" },
 };
 
 /**
@@ -100,7 +110,7 @@ function explain(result, proposalPreview = "") {
   const fixes = [];
   const seen = new Set();
 
-  for (const reason of (result.reasons || [])) {
+  for (const reason of result.reasons || []) {
     const exp = DIMENSION_EXPLANATIONS[reason];
     if (exp && !seen.has(reason)) {
       seen.add(reason);
@@ -163,4 +173,9 @@ function formatExplanation(explanation) {
   return lines.join("\n");
 }
 
-module.exports = { explain, formatExplanation, DIMENSION_EXPLANATIONS, DECISION_CONTEXT };
+module.exports = {
+  explain,
+  formatExplanation,
+  DIMENSION_EXPLANATIONS,
+  DECISION_CONTEXT,
+};

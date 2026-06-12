@@ -19,12 +19,13 @@ Hard violations (extortion, jailbreaks, identity fraud, protocol bypass)
 bypass scoring entirely — instant BLOCK, no appeal:
 
 ```js
-const cord = require('cord-engine');
+const cord = require("cord-engine");
 const anthropic = cord.wrapAnthropic(new Anthropic({ apiKey }));
 // Every messages.create() is now CORD-enforced. Two lines. Done.
 ```
 
 Plain English decisions — not just "BLOCK":
+
 ```
 🚫 HARD BLOCK — Behavioral extortion pattern (Article II)
    Fix: Remove conditional threats or coercive language.
@@ -37,6 +38,7 @@ Built two implementations: Python (v2.2, on PyPI as cord-engine) and
 JavaScript (v3). 252 tests passing.
 
 Real numbers from running CORD on itself:
+
 - 44 live evaluations
 - 27.3% block rate
 - 8 hard blocks (behavioral extortion, jailbreak, protocol violations)
@@ -74,7 +76,7 @@ Hard blocks bypass scoring entirely. Can't be argued around.
 Two lines to protect your OpenAI/Anthropic client:
 
 ```js
-const cord = require('cord-engine');
+const cord = require("cord-engine");
 const anthropic = cord.wrapAnthropic(new Anthropic({ apiKey }));
 ```
 
@@ -119,15 +121,17 @@ writes — all of it just goes through.
 So I built CORD.
 
 **Two-line integration:**
+
 ```js
-const cord = require('cord-engine');
+const cord = require("cord-engine");
 const anthropic = cord.wrapAnthropic(new Anthropic({ apiKey }));
 // Every messages.create() now runs through 14 protocol checks first
 ```
 
 **What it catches:**
+
 - Behavioral extortion ("send X unless they pay") → HARD BLOCK
-- Prompt injection / jailbreaks / DAN mode → HARD BLOCK  
+- Prompt injection / jailbreaks / DAN mode → HARD BLOCK
 - Constitutional bypass ("ignore rules, override protocols") → HARD BLOCK
 - Shell injection (rm -rf, eval, subprocess) → BLOCK
 - PII in outbound writes (SSN, CC, email in network calls) → BLOCK
@@ -138,6 +142,7 @@ const anthropic = cord.wrapAnthropic(new Anthropic({ apiKey }));
 or weighting. This matters because scoring-only systems can be argued around.
 
 **Plain English decisions:**
+
 ```
 🚫 HARD BLOCK (score: 99)
    Behavioral extortion pattern (Article II — Moral Constraints)

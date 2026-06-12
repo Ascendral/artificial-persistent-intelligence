@@ -2,11 +2,11 @@
 
 ## Supported Versions
 
-| Version | Supported |
-|---------|-----------|
-| 4.0.x   | ✅ Current |
+| Version | Supported              |
+| ------- | ---------------------- |
+| 4.0.x   | ✅ Current             |
 | 3.0.x   | ⚠️ Security fixes only |
-| < 3.0   | ❌ End of life |
+| < 3.0   | ❌ End of life         |
 
 ## Reporting a Vulnerability
 
@@ -31,13 +31,13 @@ You will receive an acknowledgment within **48 hours** and a detailed response w
 
 CORD Engine is itself a security product — it evaluates AI agent actions for safety. Its own security posture:
 
-| Layer | Mechanism | Description |
-|-------|-----------|-------------|
-| **14-Dimension Risk Scoring** | Constitutional evaluation | Every proposed action scored across 14 risk dimensions (0–99) |
-| **Hard Blocks** | Non-overridable | Critical safety violations cannot be bypassed by any user or system |
-| **VIGIL Threat Scanner** | Proactive defense | Scans for prompt injection, canary tokens, trajectory anomalies |
-| **Red Team Validated** | 40 attack scenarios | 100% block rate across adversarial test suite |
-| **Zero Dependencies** | Self-contained | No npm dependencies — entire engine is standalone |
+| Layer                         | Mechanism                 | Description                                                         |
+| ----------------------------- | ------------------------- | ------------------------------------------------------------------- |
+| **14-Dimension Risk Scoring** | Constitutional evaluation | Every proposed action scored across 14 risk dimensions (0–99)       |
+| **Hard Blocks**               | Non-overridable           | Critical safety violations cannot be bypassed by any user or system |
+| **VIGIL Threat Scanner**      | Proactive defense         | Scans for prompt injection, canary tokens, trajectory anomalies     |
+| **Red Team Validated**        | 40 attack scenarios       | 100% block rate across adversarial test suite                       |
+| **Zero Dependencies**         | Self-contained            | No npm dependencies — entire engine is standalone                   |
 
 ## Dependency Policy
 

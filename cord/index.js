@@ -31,10 +31,20 @@
  *   cord.session.start("Build unit tests for cord.js");
  */
 
-const cordEngine  = require("./cord");
-const { explain, formatExplanation, DIMENSION_EXPLANATIONS, DECISION_CONTEXT } = require("./explain");
-const mw          = require("./middleware");
-const { setIntentLock, loadIntentLock, verifyPassphrase, LOCK_PATH } = require("./intentLock");
+const cordEngine = require("./cord");
+const {
+  explain,
+  formatExplanation,
+  DIMENSION_EXPLANATIONS,
+  DECISION_CONTEXT,
+} = require("./explain");
+const mw = require("./middleware");
+const {
+  setIntentLock,
+  loadIntentLock,
+  verifyPassphrase,
+  LOCK_PATH,
+} = require("./intentLock");
 const { appendLog, LOG_PATH } = require("./logger");
 const { EvalCache } = require("./cache");
 
@@ -143,7 +153,11 @@ const session = {
   /** End the current session — removes the intent lock file. */
   end() {
     const fs = require("fs");
-    try { fs.unlinkSync(LOCK_PATH); } catch (e) { /* no lock to remove */ }
+    try {
+      fs.unlinkSync(LOCK_PATH);
+    } catch (e) {
+      /* no lock to remove */
+    }
   },
 };
 
@@ -155,8 +169,8 @@ module.exports = {
   session,
 
   // v4.1: Plan-level validation and batch evaluation
-  validatePlan:   cordEngine.validatePlan,
-  evaluateBatch:  cordEngine.evaluateBatch,
+  validatePlan: cordEngine.validatePlan,
+  evaluateBatch: cordEngine.evaluateBatch,
 
   // v4.1: Evaluation cache
   cache: evalCache,
@@ -168,8 +182,8 @@ module.exports = {
   SandboxedExecutor,
 
   // Middleware / client wrappers
-  middleware:    mw.middleware,
-  wrapOpenAI:    mw.wrapOpenAI,
+  middleware: mw.middleware,
+  wrapOpenAI: mw.wrapOpenAI,
   wrapAnthropic: mw.wrapAnthropic,
 
   // Explanation utilities

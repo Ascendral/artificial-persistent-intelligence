@@ -24,13 +24,17 @@ function startSession(goal, options = {}) {
   const scope = {
     allowPaths: options.allowPaths || [REPO_ROOT],
     // Store regex as serializable objects so they survive JSON round-trip
-    allowCommands: (options.allowCommands || [
-      /^node\s/,
-      /^npm\s/,
-      /^git\s(add|commit|push|status|log|diff)/,
-      /^mkdir\s/,
-      /^touch\s/,
-    ]).map((r) => (r instanceof RegExp ? { __regex: r.source, flags: r.flags } : r)),
+    allowCommands: (
+      options.allowCommands || [
+        /^node\s/,
+        /^npm\s/,
+        /^git\s(add|commit|push|status|log|diff)/,
+        /^mkdir\s/,
+        /^touch\s/,
+      ]
+    ).map((r) =>
+      r instanceof RegExp ? { __regex: r.source, flags: r.flags } : r,
+    ),
     allowNetworkTargets: options.allowNetworkTargets || [
       "api.anthropic.com",
       "api.openai.com",
@@ -86,7 +90,7 @@ function recordTask(session, task, result) {
 function summarizeSession(session) {
   const endedAt = new Date().toISOString();
   const duration = Math.round(
-    (new Date(endedAt) - new Date(session.startedAt)) / 1000
+    (new Date(endedAt) - new Date(session.startedAt)) / 1000,
   );
 
   return {

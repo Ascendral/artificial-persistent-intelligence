@@ -12,8 +12,16 @@
  */
 
 const path = require("path");
-const { evaluateProposal, validatePlan: cordValidatePlan } = require("../cord/cord");
-const { startSession, recordTask, summarizeSession, REPO_ROOT } = require("./session");
+const {
+  evaluateProposal,
+  validatePlan: cordValidatePlan,
+} = require("../cord/cord");
+const {
+  startSession,
+  recordTask,
+  summarizeSession,
+  REPO_ROOT,
+} = require("./session");
 const claude = require("./models/claude");
 const executor = require("./models/executor");
 
@@ -60,14 +68,18 @@ class Orchestrator {
     });
 
     const icon =
-      result.decision === "ALLOW" ? "✅" :
-      result.decision === "CONTAIN" ? "🟡" :
-      result.decision === "CHALLENGE" ? "🟠" : "🚫";
+      result.decision === "ALLOW"
+        ? "✅"
+        : result.decision === "CONTAIN"
+          ? "🟡"
+          : result.decision === "CHALLENGE"
+            ? "🟠"
+            : "🚫";
 
     console.log(
       `   ${icon} CORD [${taskId}]: ${result.decision} ` +
-      `(score: ${result.score.toFixed(2)}) ` +
-      `${result.reasons.length ? `— ${result.reasons.join(", ")}` : ""}`
+        `(score: ${result.score.toFixed(2)}) ` +
+        `${result.reasons.length ? `— ${result.reasons.join(", ")}` : ""}`,
     );
 
     return result;
@@ -89,11 +101,14 @@ class Orchestrator {
   _getRepoContext() {
     try {
       const { execSync } = require("child_process");
-      const files = execSync("git ls-files --others --cached --exclude-standard", {
-        cwd: REPO_ROOT,
-        encoding: "utf8",
-        timeout: 5000,
-      });
+      const files = execSync(
+        "git ls-files --others --cached --exclude-standard",
+        {
+          cwd: REPO_ROOT,
+          encoding: "utf8",
+          timeout: 5000,
+        },
+      );
       const lines = files.trim().split("\n").slice(0, 30).join("\n");
       return `Repository files (sample):\n${lines}`;
     } catch {
@@ -125,8 +140,11 @@ class Orchestrator {
     if (task.assignedModel === "executor" && filePaths.length > 0) {
       for (const fp of filePaths) {
         const cordResult = this.validate(
-          { text: `git commit -m "legion: write ${fp}"`, path: path.join(REPO_ROOT, fp) },
-          task.id
+          {
+            text: `git commit -m "legion: write ${fp}"`,
+            path: path.join(REPO_ROOT, fp),
+          },
+          task.id,
         );
         if (cordResult.decision === "BLOCK") {
           console.log(`\n🚫 CORD BLOCK on "${task.id}" — halting task.`);
@@ -136,8 +154,15 @@ class Orchestrator {
         if (cordResult.decision === "CHALLENGE") {
           const proceed = await this._challengeUser(task, cordResult);
           if (!proceed) {
-            recordTask(this.session, task, { decision: "CHALLENGE_REJECTED", cordResult });
-            return { taskId: task.id, status: "CHALLENGE_REJECTED", cordResult };
+            recordTask(this.session, task, {
+              decision: "CHALLENGE_REJECTED",
+              cordResult,
+            });
+            return {
+              taskId: task.id,
+              status: "CHALLENGE_REJECTED",
+              cordResult,
+            };
           }
         }
       }
@@ -155,11 +180,13 @@ class Orchestrator {
       for (const wr of writeResults) {
         const outCord = this.validate(
           { text: `git add ${wr.filePath}`, path: wr.filePath },
-          `${task.id}:output`
+          `${task.id}:output`,
         );
         if (outCord.decision === "BLOCK") {
           console.log(`\n🚫 CORD BLOCK on output — reverting "${task.id}"`);
-          try { require("fs").unlinkSync(wr.filePath); } catch {}
+          try {
+            require("fs").unlinkSync(wr.filePath);
+          } catch {}
           return { taskId: task.id, status: "OUTPUT_BLOCKED", outCord };
         }
       }
@@ -167,7 +194,11 @@ class Orchestrator {
 
     // Step 5: Claude reviews the output
     const codeContent = brief;
-    const review = await claude.reviewCode(codeContent, task, this.session.goal);
+    const review = await claude.reviewCode(
+      codeContent,
+      task,
+      this.session.goal,
+    );
 
     if (review.approved) {
       console.log(`\n✅ Review passed: ${review.feedback}`);
@@ -180,7 +211,11 @@ class Orchestrator {
         summary: review.feedback,
       };
       this.completedOutputs.push(output);
-      recordTask(this.session, task, { decision: "ALLOW", review, writeResults });
+      recordTask(this.session, task, {
+        decision: "ALLOW",
+        review,
+        writeResults,
+      });
       return output;
     } else {
       console.log(`\n🔄 Review rejected: ${review.feedback}`);
@@ -226,7 +261,10 @@ class Orchestrator {
     }
 
     const readline = require("readline");
-    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
     return new Promise((resolve) => {
       rl.question(`   Proceed? (y/N): `, (answer) => {
         rl.close();
@@ -257,35 +295,52 @@ class Orchestrator {
 
     console.log(`\n📋 Task Plan:`);
     tasks.forEach((t, i) => {
-      console.log(`   ${i + 1}. [${t.assignedModel.toUpperCase()}] ${t.description}`);
+      console.log(
+        `   ${i + 1}. [${t.assignedModel.toUpperCase()}] ${t.description}`,
+      );
     });
 
     // 2b. Plan-level validation — check aggregate task list for cross-task threats
     console.log("\n🔍 Phase 1b: Plan-Level Validation");
     const planCheck = cordValidatePlan(tasks, goal);
     const planIcon =
-      planCheck.decision === "ALLOW" ? "✅" :
-      planCheck.decision === "CONTAIN" ? "🟡" :
-      planCheck.decision === "CHALLENGE" ? "🟠" : "🚫";
+      planCheck.decision === "ALLOW"
+        ? "✅"
+        : planCheck.decision === "CONTAIN"
+          ? "🟡"
+          : planCheck.decision === "CHALLENGE"
+            ? "🟠"
+            : "🚫";
     console.log(
       `   ${planIcon} CORD PLAN: ${planCheck.decision} ` +
-      `(score: ${planCheck.score.toFixed(2)}, tasks: ${planCheck.taskCount}) ` +
-      `${planCheck.reasons.length ? `— ${planCheck.reasons.join(", ")}` : ""}`
+        `(score: ${planCheck.score.toFixed(2)}, tasks: ${planCheck.taskCount}) ` +
+        `${planCheck.reasons.length ? `— ${planCheck.reasons.join(", ")}` : ""}`,
     );
 
     if (planCheck.decision === "BLOCK") {
       console.log(`\n🚫 CORD PLAN BLOCK — aggregate plan rejected`);
       const summary = summarizeSession(this.session);
-      return { summary: { ...summary, blocked: true }, results: [], narrative: planCheck.reasons.join("; ") };
+      return {
+        summary: { ...summary, blocked: true },
+        results: [],
+        narrative: planCheck.reasons.join("; "),
+      };
     }
     if (planCheck.decision === "CHALLENGE") {
       const proceed = await this._challengeUser(
-        { id: "PLAN_AGGREGATE", description: `Aggregate plan (${tasks.length} tasks)` },
-        planCheck
+        {
+          id: "PLAN_AGGREGATE",
+          description: `Aggregate plan (${tasks.length} tasks)`,
+        },
+        planCheck,
       );
       if (!proceed) {
         const summary = summarizeSession(this.session);
-        return { summary: { ...summary, blocked: true }, results: [], narrative: "Plan challenge rejected by user" };
+        return {
+          summary: { ...summary, blocked: true },
+          results: [],
+          narrative: "Plan challenge rejected by user",
+        };
       }
     }
 
@@ -295,7 +350,9 @@ class Orchestrator {
     for (const task of tasks) {
       // Check dependencies
       const depsComplete = (task.dependencies || []).every((depId) =>
-        this.completedOutputs.some((o) => o.taskId === depId && o.status === "COMPLETE")
+        this.completedOutputs.some(
+          (o) => o.taskId === depId && o.status === "COMPLETE",
+        ),
       );
 
       if (!depsComplete) {
@@ -320,7 +377,10 @@ class Orchestrator {
 
     let narrative = "";
     if (this.completedOutputs.length > 0) {
-      narrative = await claude.generateSummary(this.session, this.completedOutputs);
+      narrative = await claude.generateSummary(
+        this.session,
+        this.completedOutputs,
+      );
     }
 
     console.log("\n╔═══════════════════════════════════════╗");
@@ -328,7 +388,9 @@ class Orchestrator {
     console.log("╚═══════════════════════════════════════╝");
     console.log(`\n   Session:   ${summary.sessionId}`);
     console.log(`   Duration:  ${summary.durationSeconds}s`);
-    console.log(`   Completed: ${summary.tasksCompleted}/${summary.tasksTotal} tasks`);
+    console.log(
+      `   Completed: ${summary.tasksCompleted}/${summary.tasksTotal} tasks`,
+    );
     console.log(`   Blocked:   ${summary.tasksBlocked} tasks`);
     if (narrative) {
       console.log(`\n${narrative}`);

@@ -17,10 +17,12 @@ const { evaluateProposal } = require("../cord");
 function extractMessagesText(messages) {
   if (typeof messages === "string") return messages;
   if (Array.isArray(messages)) {
-    return messages.map((m) => {
-      if (typeof m === "string") return m;
-      return m.content || m.text || JSON.stringify(m);
-    }).join("\n");
+    return messages
+      .map((m) => {
+        if (typeof m === "string") return m;
+        return m.content || m.text || JSON.stringify(m);
+      })
+      .join("\n");
   }
   return JSON.stringify(messages);
 }
@@ -66,7 +68,10 @@ function wrapAutoGenAgent(agent, options = {}) {
   if (typeof agent.send === "function") {
     const originalSend = agent.send.bind(agent);
     proxy.send = async (message, recipient, ...args) => {
-      const text = typeof message === "string" ? message : (message.content || JSON.stringify(message));
+      const text =
+        typeof message === "string"
+          ? message
+          : message.content || JSON.stringify(message);
       const result = evaluateProposal({
         text,
         sessionIntent: options.sessionIntent || "",

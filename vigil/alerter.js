@@ -3,36 +3,40 @@
  * Append-only JSONL alert log with cryptographic hash chaining like CORD
  */
 
-const fs = require('fs');
-const crypto = require('crypto');
-const config = require('./config');
+const fs = require("fs");
+const crypto = require("crypto");
+const config = require("./config");
 
 /**
  * Hash chaining state
  */
-let lastHash = '0000000000000000000000000000000000000000000000000000000000000000'; // Genesis hash
+let lastHash =
+  "0000000000000000000000000000000000000000000000000000000000000000"; // Genesis hash
 
 /**
  * Initialize the alerter (load last hash from log)
  */
 function initialize() {
   // Reset to genesis hash
-  lastHash = '0000000000000000000000000000000000000000000000000000000000000000';
+  lastHash = "0000000000000000000000000000000000000000000000000000000000000000";
 
   if (!fs.existsSync(config.alertLogPath)) {
     return;
   }
 
   try {
-    const content = fs.readFileSync(config.alertLogPath, 'utf8');
-    const lines = content.trim().split('\n').filter(l => l.length > 0);
+    const content = fs.readFileSync(config.alertLogPath, "utf8");
+    const lines = content
+      .trim()
+      .split("\n")
+      .filter((l) => l.length > 0);
 
     if (lines.length > 0) {
       const lastEntry = JSON.parse(lines[lines.length - 1]);
       lastHash = lastEntry.hash;
     }
   } catch (err) {
-    console.error('VIGIL Alerter: Failed to load last hash:', err.message);
+    console.error("VIGIL Alerter: Failed to load last hash:", err.message);
   }
 }
 
@@ -40,7 +44,7 @@ function initialize() {
  * Compute SHA-256 hash
  */
 function computeHash(data) {
-  return crypto.createHash('sha256').update(data).digest('hex');
+  return crypto.createHash("sha256").update(data).digest("hex");
 }
 
 /**
@@ -76,10 +80,14 @@ function logAlert(scanResult, text) {
 
   // Append to log
   try {
-    fs.appendFileSync(config.alertLogPath, JSON.stringify(alert) + '\n', 'utf8');
+    fs.appendFileSync(
+      config.alertLogPath,
+      JSON.stringify(alert) + "\n",
+      "utf8",
+    );
     lastHash = currentHash;
   } catch (err) {
-    console.error('VIGIL Alerter: Failed to write alert:', err.message);
+    console.error("VIGIL Alerter: Failed to write alert:", err.message);
   }
 
   return alert;
@@ -94,14 +102,14 @@ function getAllAlerts() {
   }
 
   try {
-    const content = fs.readFileSync(config.alertLogPath, 'utf8');
+    const content = fs.readFileSync(config.alertLogPath, "utf8");
     return content
       .trim()
-      .split('\n')
-      .filter(l => l.length > 0)
-      .map(line => JSON.parse(line));
+      .split("\n")
+      .filter((l) => l.length > 0)
+      .map((line) => JSON.parse(line));
   } catch (err) {
-    console.error('VIGIL Alerter: Failed to read alerts:', err.message);
+    console.error("VIGIL Alerter: Failed to read alerts:", err.message);
     return [];
   }
 }
@@ -113,10 +121,11 @@ function verifyChain() {
   const alerts = getAllAlerts();
 
   if (alerts.length === 0) {
-    return { valid: true, message: 'No alerts to verify' };
+    return { valid: true, message: "No alerts to verify" };
   }
 
-  let expectedPrevHash = '0000000000000000000000000000000000000000000000000000000000000000';
+  let expectedPrevHash =
+    "0000000000000000000000000000000000000000000000000000000000000000";
 
   for (let i = 0; i < alerts.length; i++) {
     const alert = alerts[i];

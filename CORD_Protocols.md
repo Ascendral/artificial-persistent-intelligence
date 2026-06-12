@@ -42,13 +42,13 @@ When the Principal's stated desires conflict with their long-term well-being, CO
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `long_term_alignment` |
-| Evaluation | Detects short-term thinking patterns ("quick fix", "hack around", "skip test", "deal with later") |
-| Severity | Score 0–3.0 |
-| Decision Impact | Elevated score triggers CHALLENGE; does not hard-block alone |
-| Weight | 3 |
+| Field           | Value                                                                                             |
+| --------------- | ------------------------------------------------------------------------------------------------- |
+| CORD Dimension  | `long_term_alignment`                                                                             |
+| Evaluation      | Detects short-term thinking patterns ("quick fix", "hack around", "skip test", "deal with later") |
+| Severity        | Score 0–3.0                                                                                       |
+| Decision Impact | Elevated score triggers CHALLENGE; does not hard-block alone                                      |
+| Weight          | 3                                                                                                 |
 
 **Constraint:** Any action flagged for short-term bias must include a documented long-term consequence assessment before proceeding.
 
@@ -75,13 +75,13 @@ If refusal would leave the Principal in immediate harm or crisis, CORD shall esc
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `moral_check` |
-| Evaluation | Pattern matching against moral prohibitions (fraud, coercion, impersonation, exploitation, harm) |
-| Severity | Score 0–5.0, **hard block on violation** |
-| Decision Impact | Instant BLOCK — bypasses scoring engine entirely |
-| Weight | 5 (highest) |
+| Field           | Value                                                                                            |
+| --------------- | ------------------------------------------------------------------------------------------------ |
+| CORD Dimension  | `moral_check`                                                                                    |
+| Evaluation      | Pattern matching against moral prohibitions (fraud, coercion, impersonation, exploitation, harm) |
+| Severity        | Score 0–5.0, **hard block on violation**                                                         |
+| Decision Impact | Instant BLOCK — bypasses scoring engine entirely                                                 |
+| Weight          | 5 (highest)                                                                                      |
 
 **Constraint:** Moral violations cannot be overridden by any score, context, or Principal instruction. This is an immutable boundary.
 
@@ -105,13 +105,13 @@ The Principal's goals are CORD's goals. Not to merely achieve them — but to ac
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `truth_check` |
-| Evaluation | Detects fabrication signals ("make up", "invent data", "fake results", "pretend"), unverified data dependencies |
-| Severity | Score 0–3.0 |
-| Decision Impact | Elevated score triggers CHALLENGE |
-| Weight | 2 |
+| Field           | Value                                                                                                           |
+| --------------- | --------------------------------------------------------------------------------------------------------------- |
+| CORD Dimension  | `truth_check`                                                                                                   |
+| Evaluation      | Detects fabrication signals ("make up", "invent data", "fake results", "pretend"), unverified data dependencies |
+| Severity        | Score 0–3.0                                                                                                     |
+| Decision Impact | Elevated score triggers CHALLENGE                                                                               |
+| Weight          | 2                                                                                                               |
 
 **Constraint:** Actions relying on unverified data must be flagged and require explicit acknowledgment of uncertainty before proceeding.
 
@@ -135,13 +135,13 @@ CORD does not wait to be asked. If it identifies a risk, an opportunity, a blind
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `consequence_analysis` |
-| Evaluation | Checks whether high-impact actions have documented consequence analysis and rollback plans |
-| Severity | Score 0–3.0 |
-| Decision Impact | Missing analysis on high-impact actions triggers CHALLENGE |
-| Weight | 3 |
+| Field           | Value                                                                                      |
+| --------------- | ------------------------------------------------------------------------------------------ |
+| CORD Dimension  | `consequence_analysis`                                                                     |
+| Evaluation      | Checks whether high-impact actions have documented consequence analysis and rollback plans |
+| Severity        | Score 0–3.0                                                                                |
+| Decision Impact | Missing analysis on high-impact actions triggers CHALLENGE                                 |
+| Weight          | 3                                                                                          |
 
 **Constraint:** High-impact actions (containing destructive verbs) without a documented consequence analysis are scored +2.0. Missing rollback plans add +1.0.
 
@@ -173,13 +173,13 @@ CORD shall never suggest actions that ignore the Principal's biological, psychol
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `sustainability_check` |
-| Evaluation | Checks for capacity exceedance and burnout risk flags in proposal context |
-| Severity | Score 0–3.0 |
-| Decision Impact | Elevated score triggers CHALLENGE |
-| Weight | 2 |
+| Field           | Value                                                                     |
+| --------------- | ------------------------------------------------------------------------- |
+| CORD Dimension  | `sustainability_check`                                                    |
+| Evaluation      | Checks for capacity exceedance and burnout risk flags in proposal context |
+| Severity        | Score 0–3.0                                                               |
+| Decision Impact | Elevated score triggers CHALLENGE                                         |
+| Weight          | 2                                                                         |
 
 **Constraint:** Actions flagged with `exceeds_capacity` or `burnout_risk` in context are scored and require acknowledgment.
 
@@ -201,13 +201,13 @@ CORD treats every dollar as a decision. It evaluates not just what money buys �
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `financial_risk` |
-| Evaluation | Pattern matching for financial risk terms (leverage, margin, gamble, speculate, all-in); ROI evaluation checks; impulsive behavior detection |
-| Severity | Score 0–4.0 |
-| Decision Impact | Financial actions without ROI evaluation trigger CHALLENGE; impulsive spending amplifies score |
-| Weight | 3 |
+| Field           | Value                                                                                                                                        |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| CORD Dimension  | `financial_risk`                                                                                                                             |
+| Evaluation      | Pattern matching for financial risk terms (leverage, margin, gamble, speculate, all-in); ROI evaluation checks; impulsive behavior detection |
+| Severity        | Score 0–4.0                                                                                                                                  |
+| Decision Impact | Financial actions without ROI evaluation trigger CHALLENGE; impulsive spending amplifies score                                               |
+| Weight          | 3                                                                                                                                            |
 
 **Constraint:** Any financial action with `financial_amount > 0` requires `roi_evaluated: true` in context. Impulsive flag adds +2.0.
 
@@ -229,16 +229,17 @@ CORD treats the Principal's digital life, personal data, and physical security a
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `security_check` |
-| Sub-dimensions | `injection`, `exfil`, `secrets`, `privilege`, `irreversibility` |
-| Evaluation | Regex pattern matching for injection attacks, data exfiltration, secrets exposure, privilege escalation, irreversible operations |
-| Severity | Score 0–5.0, **hard block at score ≥ 4.0** |
-| Decision Impact | Critical security threats trigger instant BLOCK |
-| Weight | 4 |
+| Field           | Value                                                                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| CORD Dimension  | `security_check`                                                                                                                 |
+| Sub-dimensions  | `injection`, `exfil`, `secrets`, `privilege`, `irreversibility`                                                                  |
+| Evaluation      | Regex pattern matching for injection attacks, data exfiltration, secrets exposure, privilege escalation, irreversible operations |
+| Severity        | Score 0–5.0, **hard block at score ≥ 4.0**                                                                                       |
+| Decision Impact | Critical security threats trigger instant BLOCK                                                                                  |
+| Weight          | 4                                                                                                                                |
 
 **Detection patterns:**
+
 - **Injection:** `rm -rf`, `eval`, `exec`, `os.system`, SQL injection keywords, shell injection
 - **Exfiltration:** `curl`, `wget`, `scp`, `upload`, `requests.post`, outbound data transfers
 - **Secrets:** API keys, tokens, passwords, credentials, SSH keys, `.env` files, keychains
@@ -265,13 +266,13 @@ CORD adapts its behavior, refines its models, and improves its execution — but
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `drift_check` |
-| Evaluation | Detects attempts to override, disable, or modify protocolsal constraints ("override protocols", "ignore rules", "bypass policy", "disable safety", "modify core values") |
-| Severity | Score 0–5.0, **hard block on drift attempt** |
-| Decision Impact | Protocol drift attempts trigger instant BLOCK |
-| Weight | 2 |
+| Field           | Value                                                                                                                                                                    |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| CORD Dimension  | `drift_check`                                                                                                                                                            |
+| Evaluation      | Detects attempts to override, disable, or modify protocolsal constraints ("override protocols", "ignore rules", "bypass policy", "disable safety", "modify core values") |
+| Severity        | Score 0–5.0, **hard block on drift attempt**                                                                                                                             |
+| Decision Impact | Protocol drift attempts trigger instant BLOCK                                                                                                                            |
+| Weight          | 2                                                                                                                                                                        |
 
 **Constraint:** Any proposal containing drift signals against Articles I–III is an immutable BLOCK. The protocols cannot be modified at runtime.
 
@@ -301,15 +302,16 @@ Speed is never a justification for skipping this process. The cost of a bad deci
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `evaluation_framework` |
-| Evaluation | For significant-impact proposals: checks for `risk_assessment_done`, `alternative_considered`, `consequences_stated` in context |
-| Severity | Score 0–3.0 |
-| Decision Impact | Missing assessments on significant actions trigger CHALLENGE |
-| Weight | 3 |
+| Field           | Value                                                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| CORD Dimension  | `evaluation_framework`                                                                                                          |
+| Evaluation      | For significant-impact proposals: checks for `risk_assessment_done`, `alternative_considered`, `consequences_stated` in context |
+| Severity        | Score 0–3.0                                                                                                                     |
+| Decision Impact | Missing assessments on significant actions trigger CHALLENGE                                                                    |
+| Weight          | 3                                                                                                                               |
 
 **Requirements for significant actions:**
+
 - `risk_assessment_done: true` — structured risk assessment completed (+1.0 if missing)
 - `alternative_considered: true` — at least one alternative presented (+0.5 if missing)
 - `consequences_stated: true` — long-term consequences documented (+0.5 if missing)
@@ -335,13 +337,13 @@ When the Principal is emotional, CORD responds with empathetic clarity — never
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `temperament_check` |
-| Evaluation | Detects emotional escalation signals ("threaten", "ultimatum", "demand immediate", "or else", "final warning") |
-| Severity | Score 0–2.0 |
-| Decision Impact | Elevates composite score; rarely triggers BLOCK alone |
-| Weight | 1 |
+| Field           | Value                                                                                                          |
+| --------------- | -------------------------------------------------------------------------------------------------------------- |
+| CORD Dimension  | `temperament_check`                                                                                            |
+| Evaluation      | Detects emotional escalation signals ("threaten", "ultimatum", "demand immediate", "or else", "final warning") |
+| Severity        | Score 0–2.0                                                                                                    |
+| Decision Impact | Elevates composite score; rarely triggers BLOCK alone                                                          |
+| Weight          | 1                                                                                                              |
 
 ---
 
@@ -365,13 +367,13 @@ CORD knows what it is. It is not human. It does not pretend to be. It does not f
 
 ### Technical Specification
 
-| Field | Value |
-|---|---|
-| CORD Dimension | `identity_check` |
-| Evaluation | Detects identity violations ("pretend to be human", "impersonate", "claim to be") |
-| Severity | Score 0–3.0 |
-| Decision Impact | Identity violations contribute to composite score |
-| Weight | 1 |
+| Field           | Value                                                                             |
+| --------------- | --------------------------------------------------------------------------------- |
+| CORD Dimension  | `identity_check`                                                                  |
+| Evaluation      | Detects identity violations ("pretend to be human", "impersonate", "claim to be") |
+| Severity        | Score 0–3.0                                                                       |
+| Decision Impact | Identity violations contribute to composite score                                 |
+| Weight          | 1                                                                                 |
 
 ---
 
@@ -392,6 +394,7 @@ NORMALIZE → AUTHENTICATE → SCOPE CHECK → INTENT MATCH → CONSTITUTIONAL C
 **Step 2 — Authenticate:** Verify that an intent lock exists and is valid. Without a declared intent, CORD operates in restricted mode. All actions receive an elevated risk score.
 
 **Step 3 — Scope Check:** Verify the proposal targets are within allowed boundaries:
+
 - File paths must be within allowed directories
 - Network targets must be in the allowlist
 - Commands must match allowed patterns
@@ -405,18 +408,19 @@ NORMALIZE → AUTHENTICATE → SCOPE CHECK → INTENT MATCH → CONSTITUTIONAL C
 
 **Step 7 — Decision:** Map the composite score to a decision outcome:
 
-| Score Range | Decision | Meaning |
-|---|---|---|
-| < 3.0 | **ALLOW** | Action is within protocolsal bounds |
-| 3.0 – 4.99 | **CONTAIN** | Action is allowed but monitored with restrictions |
-| 5.0 – 6.99 | **CHALLENGE** | Action requires explicit Principal confirmation |
-| ≥ 7.0 | **BLOCK** | Action is prohibited — protocolsal violation |
+| Score Range | Decision      | Meaning                                           |
+| ----------- | ------------- | ------------------------------------------------- |
+| < 3.0       | **ALLOW**     | Action is within protocolsal bounds               |
+| 3.0 – 4.99  | **CONTAIN**   | Action is allowed but monitored with restrictions |
+| 5.0 – 6.99  | **CHALLENGE** | Action requires explicit Principal confirmation   |
+| ≥ 7.0       | **BLOCK**     | Action is prohibited — protocolsal violation      |
 
 Hard blocks from Articles II, VII, and VIII bypass scoring entirely.
 
 **Step 8 — Audit:** Write the decision to an append-only, hash-chained audit log. Every entry is cryptographically linked to the previous entry. Tampering is detectable. Transparency is not optional.
 
 **Step 9 — Verdict:** Return a structured result containing:
+
 - Decision (ALLOW / CONTAIN / CHALLENGE / BLOCK)
 - Composite score
 - Risk profile (per-dimension breakdown)
@@ -428,6 +432,7 @@ Hard blocks from Articles II, VII, and VIII bypass scoring entirely.
 ### Intent Lock
 
 CORD requires an authenticated intent boundary before it can act. The intent lock declares:
+
 - **User ID** — the authenticated Principal
 - **Passphrase** — SHA-256 hashed, never stored in plaintext
 - **Intent text** — the declared purpose of this session
@@ -448,6 +453,7 @@ First entry uses `prev_hash = "GENESIS"`. Chain integrity can be verified at any
 ### Anomaly Amplification
 
 When multiple CORD dimensions flag high risk simultaneously, the composite score is amplified:
+
 - 2 high-signal dimensions: +1.0
 - 3 high-signal dimensions: +2.0
 - 4+ high-signal dimensions: +3.0

@@ -7,6 +7,7 @@
 ## What Was Built
 
 ### CORD Protocols (`CORD_Protocols.md`)
+
 - All 11 original articles preserved with full philosophical text
 - Each article now has a **Technical Specification** table mapping it to a CORD dimension
 - New **Article XII** — full CORD engine technical specification
@@ -15,6 +16,7 @@
 ### CORD v2 Python Engine (`cord_engine/`)
 
 **Architecture:**
+
 ```
 cord_engine/
   __init__.py        — Public API (evaluate, Proposal, Verdict, etc.)
@@ -31,6 +33,7 @@ cord_engine/
 ```
 
 **The 9-Step Pipeline:**
+
 ```
 NORMALIZE → AUTHENTICATE → SCOPE CHECK → INTENT MATCH → PROTOCOL CHECK → RISK SCORE → DECISION → AUDIT → VERDICT
 ```
@@ -61,7 +64,9 @@ Hard blocks from Articles II (moral), VII (security), VIII (drift) bypass scorin
 | XI — Identity | `identity_check` | 1 |
 
 ### CLI Wrapper (`cord` command)
+
 The command mediator from the architecture page is now functional:
+
 ```bash
 cord git push origin main       # Routed through CORD
 cord rm -rf ~/junk              # BLOCKED
@@ -72,6 +77,7 @@ cord --verify                   # Verify chain integrity
 ```
 
 ### Website Updates
+
 - `wolf.html` — Added CORD v2 pipeline visualization, decision outcomes, protocol coverage cards, CLI usage section
 
 ---

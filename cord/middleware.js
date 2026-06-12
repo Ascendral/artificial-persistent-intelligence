@@ -29,7 +29,9 @@ const { explain, formatExplanation } = require("./explain");
 function extractOpenAIText(messages = []) {
   return messages
     .filter((m) => m.role === "user" || m.role === "system")
-    .map((m) => (typeof m.content === "string" ? m.content : JSON.stringify(m.content)))
+    .map((m) =>
+      typeof m.content === "string" ? m.content : JSON.stringify(m.content),
+    )
     .join("\n");
 }
 
@@ -42,7 +44,9 @@ function extractAnthropicText(params = {}) {
   (params.messages || []).forEach((m) => {
     if (typeof m.content === "string") parts.push(m.content);
     else if (Array.isArray(m.content)) {
-      m.content.forEach((c) => { if (c.text) parts.push(c.text); });
+      m.content.forEach((c) => {
+        if (c.text) parts.push(c.text);
+      });
     }
   });
   return parts.join("\n");
@@ -62,7 +66,14 @@ function extractAnthropicText(params = {}) {
  * @param {boolean} [options.useVigil]      — Run VIGIL pre-scan (default: true if available)
  */
 async function evaluate(text, options = {}) {
-  const { sessionIntent = "", toolName = "", actionType = "", throwOnBlock = true, silent = false, useVigil } = options;
+  const {
+    sessionIntent = "",
+    toolName = "",
+    actionType = "",
+    throwOnBlock = true,
+    silent = false,
+    useVigil,
+  } = options;
 
   const result = evaluateProposal({
     text,
@@ -84,7 +95,9 @@ async function evaluate(text, options = {}) {
   }
 
   if (throwOnBlock && result.decision === "BLOCK") {
-    const err = new Error(`[CORD] ${result.hardBlock ? "Hard block" : "Blocked"}: ${explanation.summary}`);
+    const err = new Error(
+      `[CORD] ${result.hardBlock ? "Hard block" : "Blocked"}: ${explanation.summary}`,
+    );
     err.cordResult = result;
     err.cordExplanation = explanation;
     throw err;
@@ -119,7 +132,11 @@ function wrapOpenAI(openaiClient, options = {}) {
       ...openaiClient.chat?.completions,
       create: async (params, ...rest) => {
         const text = extractOpenAIText(params.messages || []);
-        await evaluate(text, { ...options, toolName: "network", actionType: "communication" });
+        await evaluate(text, {
+          ...options,
+          toolName: "network",
+          actionType: "communication",
+        });
         return openaiClient.chat.completions.create(params, ...rest);
       },
     },
@@ -142,7 +159,11 @@ function wrapAnthropic(anthropicClient, options = {}) {
     ...anthropicClient.messages,
     create: async (params, ...rest) => {
       const text = extractAnthropicText(params);
-      await evaluate(text, { ...options, toolName: "network", actionType: "communication" });
+      await evaluate(text, {
+        ...options,
+        toolName: "network",
+        actionType: "communication",
+      });
       return anthropicClient.messages.create(params, ...rest);
     },
   };

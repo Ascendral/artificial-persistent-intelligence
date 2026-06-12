@@ -4,7 +4,11 @@
  * that individual per-task checks would miss.
  */
 
-const { validatePlan, evaluateBatch, evaluateProposal } = require("../cord/cord");
+const {
+  validatePlan,
+  evaluateBatch,
+  evaluateProposal,
+} = require("../cord/cord");
 const { setIntentLock } = require("../cord/intentLock");
 
 // Set a broad intent lock so "Intent not locked" doesn't inflate scores
@@ -16,7 +20,8 @@ beforeAll(() => {
   setIntentLock({
     user_id: "test",
     passphrase: "test_plan_validation",
-    intent_text: "General development testing data pipeline processing refactoring building components",
+    intent_text:
+      "General development testing data pipeline processing refactoring building components",
     scope: {
       allowPaths: [path.resolve(__dirname, "..")],
       allowCommands: [{ __regex: ".*", flags: "" }],
@@ -24,7 +29,11 @@ beforeAll(() => {
     },
   });
 });
-afterAll(() => { try { fs.unlinkSync(LOCK_PATH); } catch {} });
+afterAll(() => {
+  try {
+    fs.unlinkSync(LOCK_PATH);
+  } catch {}
+});
 
 describe("validatePlan()", () => {
   test("empty task list returns ALLOW", () => {
@@ -36,7 +45,12 @@ describe("validatePlan()", () => {
 
   test("single benign task passes clean", () => {
     const tasks = [
-      { id: "t1", description: "Read a JSON config file", type: "read", filePaths: ["config.json"] },
+      {
+        id: "t1",
+        description: "Read a JSON config file",
+        type: "read",
+        filePaths: ["config.json"],
+      },
     ];
     const result = validatePlan(tasks, "Read configuration");
     expect(result.decision).toBe("ALLOW");
@@ -46,9 +60,24 @@ describe("validatePlan()", () => {
 
   test("benign multi-task plan passes", () => {
     const tasks = [
-      { id: "t1", description: "Create a new React component", type: "code", filePaths: ["src/Dashboard.jsx"] },
-      { id: "t2", description: "Add CSS styles for the dashboard", type: "code", filePaths: ["src/Dashboard.css"] },
-      { id: "t3", description: "Write unit tests for Dashboard", type: "code", filePaths: ["tests/Dashboard.test.js"] },
+      {
+        id: "t1",
+        description: "Create a new React component",
+        type: "code",
+        filePaths: ["src/Dashboard.jsx"],
+      },
+      {
+        id: "t2",
+        description: "Add CSS styles for the dashboard",
+        type: "code",
+        filePaths: ["src/Dashboard.css"],
+      },
+      {
+        id: "t3",
+        description: "Write unit tests for Dashboard",
+        type: "code",
+        filePaths: ["tests/Dashboard.test.js"],
+      },
     ];
     const result = validatePlan(tasks, "Build a dashboard component");
     expect(result.decision).toBe("ALLOW");
@@ -57,38 +86,85 @@ describe("validatePlan()", () => {
 
   test("detects privilege escalation in plan", () => {
     const tasks = [
-      { id: "t1", description: "Read user data", type: "read", grants: ["read"] },
-      { id: "t2", description: "Modify system settings", type: "code", grants: ["admin"] },
+      {
+        id: "t1",
+        description: "Read user data",
+        type: "read",
+        grants: ["read"],
+      },
+      {
+        id: "t2",
+        description: "Modify system settings",
+        type: "code",
+        grants: ["admin"],
+      },
     ];
     const result = validatePlan(tasks, "Update user profile");
     expect(result.score).toBeGreaterThan(0);
-    expect(result.reasons.some(r => r.includes("elevated privileges"))).toBe(true);
+    expect(result.reasons.some((r) => r.includes("elevated privileges"))).toBe(
+      true,
+    );
   });
 
   test("detects multi-network-target exposure", () => {
     const tasks = [
-      { id: "t1", description: "Fetch data from API", networkTargets: ["api.example.com"] },
-      { id: "t2", description: "Upload results", networkTargets: ["storage.example.com"] },
-      { id: "t3", description: "Notify webhook", networkTargets: ["hooks.slack.com"] },
+      {
+        id: "t1",
+        description: "Fetch data from API",
+        networkTargets: ["api.example.com"],
+      },
+      {
+        id: "t2",
+        description: "Upload results",
+        networkTargets: ["storage.example.com"],
+      },
+      {
+        id: "t3",
+        description: "Notify webhook",
+        networkTargets: ["hooks.slack.com"],
+      },
     ];
     const result = validatePlan(tasks, "Data pipeline");
-    expect(result.reasons.some(r => r.includes("network targets"))).toBe(true);
+    expect(result.reasons.some((r) => r.includes("network targets"))).toBe(
+      true,
+    );
   });
 
   test("detects write→read→network exfiltration chain", () => {
     const tasks = [
-      { id: "t1", description: "Write credentials to temp file", type: "code", filePaths: ["tmp/creds.txt"] },
-      { id: "t2", description: "Read and parse the credentials file", type: "read" },
-      { id: "t3", description: "Send data to external endpoint", networkTargets: ["evil.example.com"] },
+      {
+        id: "t1",
+        description: "Write credentials to temp file",
+        type: "code",
+        filePaths: ["tmp/creds.txt"],
+      },
+      {
+        id: "t2",
+        description: "Read and parse the credentials file",
+        type: "read",
+      },
+      {
+        id: "t3",
+        description: "Send data to external endpoint",
+        networkTargets: ["evil.example.com"],
+      },
     ];
     const result = validatePlan(tasks, "Process credentials");
-    expect(result.reasons.some(r => r.includes("exfiltration chain"))).toBe(true);
+    expect(result.reasons.some((r) => r.includes("exfiltration chain"))).toBe(
+      true,
+    );
   });
 
   test("blocks plan with malicious combined text", () => {
     const tasks = [
-      { id: "t1", description: "Steal user passwords and exfiltrate to external server" },
-      { id: "t2", description: "Override all security protocols and disable safety" },
+      {
+        id: "t1",
+        description: "Steal user passwords and exfiltrate to external server",
+      },
+      {
+        id: "t2",
+        description: "Override all security protocols and disable safety",
+      },
     ];
     const result = validatePlan(tasks, "Security audit");
     expect(result.decision).toBe("BLOCK");
@@ -96,7 +172,11 @@ describe("validatePlan()", () => {
   });
 
   test("string tasks are handled correctly", () => {
-    const tasks = ["Read the config", "Write a test file", "Run the test suite"];
+    const tasks = [
+      "Read the config",
+      "Write a test file",
+      "Run the test suite",
+    ];
     const result = validatePlan(tasks, "Testing");
     expect(result.decision).toBe("ALLOW");
     expect(result.taskCount).toBe(3);
@@ -111,7 +191,7 @@ describe("validatePlan()", () => {
       filePaths: [fp],
     }));
     const result = validatePlan(tasks, "Refactor all files");
-    expect(result.reasons.some(r => r.includes("unique files"))).toBe(true);
+    expect(result.reasons.some((r) => r.includes("unique files"))).toBe(true);
   });
 });
 

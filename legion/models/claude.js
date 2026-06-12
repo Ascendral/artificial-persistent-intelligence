@@ -91,7 +91,9 @@ Be specific. No vague tasks. Each task must be independently completable.`;
     console.log(`   → ${parsed.tasks.length} tasks identified`);
     return parsed.tasks;
   } catch (err) {
-    throw new Error(`Claude decomposition returned invalid JSON: ${raw.slice(0, 200)}`);
+    throw new Error(
+      `Claude decomposition returned invalid JSON: ${raw.slice(0, 200)}`,
+    );
   }
 }
 
@@ -186,7 +188,12 @@ If not approved, set approved=false, list specific issues, and set revisionReque
   try {
     return JSON.parse(cleaned);
   } catch {
-    return { approved: false, issues: ["Review parse error"], feedback: raw, revisionRequest: null };
+    return {
+      approved: false,
+      issues: ["Review parse error"],
+      feedback: raw,
+      revisionRequest: null,
+    };
   }
 }
 

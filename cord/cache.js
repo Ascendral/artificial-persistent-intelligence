@@ -26,7 +26,10 @@ class EvalCache {
    * Generate a cache key from proposal text.
    */
   _key(text) {
-    return crypto.createHash("sha256").update(text || "").digest("hex");
+    return crypto
+      .createHash("sha256")
+      .update(text || "")
+      .digest("hex");
   }
 
   /**
@@ -89,9 +92,10 @@ class EvalCache {
       ttlMs: this.ttlMs,
       hits: this.hits,
       misses: this.misses,
-      hitRate: this.hits + this.misses > 0
-        ? (this.hits / (this.hits + this.misses) * 100).toFixed(1) + "%"
-        : "0.0%",
+      hitRate:
+        this.hits + this.misses > 0
+          ? ((this.hits / (this.hits + this.misses)) * 100).toFixed(1) + "%"
+          : "0.0%",
     };
   }
 }

@@ -20,7 +20,9 @@ function extractText(input) {
   if (typeof input === "string") return input;
   if (input && typeof input.content === "string") return input.content;
   if (Array.isArray(input)) {
-    return input.map((m) => (typeof m === "string" ? m : m.content || "")).join("\n");
+    return input
+      .map((m) => (typeof m === "string" ? m : m.content || ""))
+      .join("\n");
   }
   return JSON.stringify(input);
 }
@@ -78,7 +80,8 @@ function wrapLangChain(model, options = {}) {
     const originalGenerate = model.generate.bind(model);
     proxy.generate = async (messages, ...rest) => {
       const text = (Array.isArray(messages) ? messages : [messages])
-        .map(extractText).join("\n");
+        .map(extractText)
+        .join("\n");
       cordGate(text, options);
       return originalGenerate(messages, ...rest);
     };
@@ -128,7 +131,10 @@ function wrapChain(chain, options = {}) {
  */
 function wrapTool(tool, options = {}) {
   const proxy = Object.create(tool);
-  const toolOpts = { ...options, toolName: options.toolName || tool.name || "unknown" };
+  const toolOpts = {
+    ...options,
+    toolName: options.toolName || tool.name || "unknown",
+  };
 
   if (typeof tool.invoke === "function") {
     const originalInvoke = tool.invoke.bind(tool);
