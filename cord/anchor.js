@@ -23,25 +23,12 @@ const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const { appendLog, verifyChain, readLastLine, LOG_PATH } = require("./logger");
+// Shared, pure serialization — same definition the anchor service uses, so
+// client signatures and server verification can never drift.
+const { canonicalBatch, countersignData } = require("./anchor-canonical");
 
 const BATCH_VERSION = 1;
 const ANCHOR_DIR_DEFAULT = path.join(os.homedir(), ".cord");
-
-// ── Canonical serialization ──────────────────────────────────────────────────
-// Deterministic, fixed key order, excludes `sig`. Both signing and
-// verification serialize the same way so the signature is stable.
-function canonicalBatch(b) {
-  return JSON.stringify({
-    v: b.v,
-    client_id: b.client_id,
-    log_id: b.log_id,
-    seq: b.seq,
-    entry_count: b.entry_count,
-    chain_head: b.chain_head,
-    prev_anchor_head: b.prev_anchor_head,
-    ts_client: b.ts_client,
-  });
-}
 
 // ── Keys (Ed25519) ───────────────────────────────────────────────────────────
 function generateKeypair() {
@@ -154,6 +141,26 @@ function verifyBatchSig(batch, publicKeyPem) {
       Buffer.from(canonicalBatch(batch)),
       publicKeyPem,
       Buffer.from(batch.sig, "base64"),
+    );
+  } catch {
+    return false;
+  }
+}
+
+// ── Server countersignature (receipts) ──────────────────────────────────────
+/**
+ * Verify a server receipt: that the anchor service really countersigned
+ * THIS batch at THIS timestamp. The client holds receipts as proof the
+ * service can't later deny or rewrite an anchor.
+ */
+function verifyReceipt(batch, tsServer, serverSigB64, serverPublicKeyPem) {
+  if (!batch || !tsServer || !serverSigB64) return false;
+  try {
+    return crypto.verify(
+      null,
+      Buffer.from(countersignData(batch, tsServer)),
+      serverPublicKeyPem,
+      Buffer.from(serverSigB64, "base64"),
     );
   } catch {
     return false;
@@ -302,6 +309,8 @@ module.exports = {
   buildBatch,
   signBatch,
   verifyBatchSig,
+  countersignData,
+  verifyReceipt,
   loadState,
   saveState,
   createAnchor,

@@ -53,6 +53,8 @@
     "cord/policies.js",
     "cord/cache.js",
     "cord/sandbox.js",
+    "cord/anchor.js",
+    "cord/anchor-canonical.js",
     "cord/frameworks/index.js",
     "cord/frameworks/langchain.js",
     "cord/frameworks/crewai.js",

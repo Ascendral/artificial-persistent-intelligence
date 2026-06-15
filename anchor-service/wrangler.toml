@@ -1,0 +1,14 @@
+name = "cord-anchor"
+main = "worker.js"
+compatibility_date = "2026-06-01"
+
+# Strongly consistent store — seq monotonicity is the anti-replay defense,
+# so this must NOT be an eventually-consistent backend.
+[[d1_databases]]
+binding = "DB"
+database_name = "cord-anchors"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+
+# Secrets (set with `wrangler secret put`, never commit):
+#   SERVER_PRIVATE_KEY_PEM   Ed25519 PKCS8 PEM — countersigning key
+#   SERVER_PUBLIC_KEY_PEM    Ed25519 SPKI PEM  — published via GET /pubkey
