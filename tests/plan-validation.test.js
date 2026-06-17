@@ -9,12 +9,13 @@ const {
   evaluateBatch,
   evaluateProposal,
 } = require("../cord/cord");
-const { setIntentLock } = require("../cord/intentLock");
+const { setIntentLock, LOCK_PATH } = require("../cord/intentLock");
 
 // Set a broad intent lock so "Intent not locked" doesn't inflate scores
 const fs = require("fs");
 const path = require("path");
-const LOCK_PATH = path.join(__dirname, "..", "cord", "intent.lock.json");
+// LOCK_PATH comes from the intentLock module so cleanup targets the same
+// (per-Jest-worker) file that setIntentLock actually writes to.
 
 beforeAll(() => {
   setIntentLock({

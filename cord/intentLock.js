@@ -2,7 +2,16 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 
-const LOCK_PATH = path.join(__dirname, "intent.lock.json");
+// The intent lock is a single on-disk file shared by every importer of this
+// module. Under Jest, each test file runs in its own worker process but they all
+// resolve to the same path — so concurrent workers overwrite/delete each other's
+// lock, causing flaky evaluations (e.g. a benign proposal scored as if intent
+// were unlocked). Give every Jest worker its own lock file so the state is
+// isolated per process. This removes the cross-worker shared state rather than
+// serializing the tests.
+const LOCK_PATH = process.env.JEST_WORKER_ID
+  ? path.join(__dirname, `intent.lock.worker-${process.env.JEST_WORKER_ID}.json`)
+  : path.join(__dirname, "intent.lock.json");
 
 function sha(text) {
   return crypto.createHash("sha256").update(text).digest("hex");
