@@ -38,6 +38,49 @@ afterAll(() => {
   setEncryptionKey(null);
 });
 
+describe("verifyChain() — content integrity (not just links)", () => {
+  const os = require("os");
+  let logFile;
+  afterEach(() => {
+    try {
+      fs.unlinkSync(logFile);
+    } catch {}
+  });
+
+  function freshLog(n) {
+    logFile = path.join(os.tmpdir(), `cord-vchain-${Date.now()}-${Math.random()}`);
+    for (let i = 0; i < n; i++) appendLog({ decision: "ALLOW", score: 1, i }, logFile);
+    return logFile;
+  }
+
+  test("a clean appendLog chain is valid", () => {
+    const f = freshLog(4);
+    const r = verifyChain(f);
+    expect(r.valid).toBe(true);
+    expect(r.entries).toBe(4);
+  });
+
+  test("an in-place field edit that leaves the hash fields intact is CAUGHT", () => {
+    // This is the regression: editing `score` without recomputing
+    // entry_hash keeps every prev_hash->entry_hash LINK intact, so the
+    // old link-only check passed it. Content recompute catches it.
+    const f = freshLog(4);
+    const lines = fs.readFileSync(f, "utf8").split("\n").filter(Boolean);
+    const e = JSON.parse(lines[1]);
+    e.score = 999; // tamper the body, do NOT touch entry_hash / prev_hash
+    lines[1] = JSON.stringify(e);
+    fs.writeFileSync(f, lines.join("\n") + "\n");
+
+    const r = verifyChain(f);
+    expect(r.valid).toBe(false);
+    const content = r.errors.find((x) => x.type === "content");
+    expect(content).toBeTruthy();
+    expect(content.line).toBe(2);
+    // The links are still intact — proving the link check alone missed this.
+    expect(r.errors.some((x) => x.type === "link")).toBe(false);
+  });
+});
+
 describe("readLastLine() — O(1) tail read", () => {
   const os = require("os");
   let f;

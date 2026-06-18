@@ -223,8 +223,19 @@ function verifyChain(logPath = LOG_PATH) {
       const content = encryptionKey ? decryptEntry(lines[i]) : lines[i];
       const entry = JSON.parse(content);
 
+      // Link integrity: prev_hash must point at the previous entry's hash.
       if (entry.prev_hash !== prevHash) {
-        errors.push({ line: i + 1, expected: prevHash, got: entry.prev_hash });
+        errors.push({ line: i + 1, type: "link", expected: prevHash, got: entry.prev_hash });
+      }
+      // Content integrity: recompute entry_hash from the body and compare.
+      // Without this, an in-place field edit that leaves the hash fields
+      // untouched passes the link check undetected — the chain reads
+      // "valid" while the logged content was altered. entry_hash was the
+      // last key written, so stripping it reproduces the original `base`.
+      const { entry_hash, ...base } = entry;
+      const recomputed = hashPayload(base.prev_hash + JSON.stringify(base));
+      if (recomputed !== entry_hash) {
+        errors.push({ line: i + 1, type: "content", expected: recomputed, got: entry_hash });
       }
       prevHash = entry.entry_hash;
     } catch (err) {
