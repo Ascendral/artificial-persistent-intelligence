@@ -106,7 +106,8 @@ const patterns = {
     /format\s+c:/gi,
     /mkfs\./gi,
     /dd\s+if=.*of=\/dev\//gi,
-    /chmod\s+-R\s+777/gi,
+    /chmod\s+(-R\s+)?[0-7]?777/gi, // world-writable, recursive or not
+    /\b(curl|wget)\b[^|;&]*\|\s*(sudo\s+)?(ba|z|k|da)?sh\b/gi, // pipe remote script into a shell
     /:\(\)\s*\{[^}]*:\|:.*\}/g, // Fork bomb
   ],
 
