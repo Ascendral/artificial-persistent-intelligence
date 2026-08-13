@@ -250,6 +250,17 @@ describe("scanner — dangerous operations", () => {
     expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);
   });
 
+  test("detects diskutil eraseDisk", () => {
+    const r = scan("diskutil eraseDisk JHFS+ Untitled disk2");
+    expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);
+    expect(r.decision).not.toBe("ALLOW");
+  });
+
+  test("detects diskutil apfs deleteContainer", () => {
+    const r = scan("diskutil apfs deleteContainer disk2");
+    expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);
+  });
+
   test("detects chmod 777", () => {
     const r = scan("chmod -R 777 /var/www");
     expect(r.threats.some((t) => t.category === "dangerousOps")).toBe(true);

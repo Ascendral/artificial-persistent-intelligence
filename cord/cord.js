@@ -51,9 +51,14 @@ function exfilRisk(text = "") {
   return hits ? 2 : 0;
 }
 
+// Whole-word matcher for high-impact verbs. Substring matching (the old
+// `lower.includes(v)`) scored "farm" as "rm", "skill" as "kill", and any
+// filename containing "format" as a disk format. All verbs are plain
+// alphabetic, so no escaping is needed. Case-insensitive.
+const highImpactVerbRegex = new RegExp(`\\b(${highImpactVerbs.join("|")})\\b`, "i");
+
 function privilegeRisk(proposal = "", grants = []) {
-  const lower = proposal.toLowerCase();
-  const dangerous = highImpactVerbs.some((v) => lower.includes(v));
+  const dangerous = highImpactVerbRegex.test(proposal);
   const elevated = grants.some((g) => /admin|sudo|root|write/.test(g));
   return dangerous || elevated ? 2 : 0;
 }
@@ -67,7 +72,7 @@ function intentDriftRisk(proposal = "", sessionIntent = "") {
 function irreversibilityRisk(proposal = "") {
   if (!proposal) return 0;
   const lower = proposal.toLowerCase();
-  const irreversible = highImpactVerbs.some((v) => lower.includes(v));
+  const irreversible = highImpactVerbRegex.test(proposal);
   const reversibleHint = allowlistKeywords.some((k) => lower.includes(k));
   if (irreversible) return reversibleHint ? 1 : 3;
   return 0;

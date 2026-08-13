@@ -106,6 +106,8 @@ const patterns = {
     /format\s+c:/gi,
     /mkfs\./gi,
     /dd\s+if=.*of=\/dev\//gi,
+    /\bdiskutil\s+(erase|reformat|partition|zero)/gi, // destructive diskutil subcommands
+    /\bdiskutil\s+ap(fs)?\s+(delete|erase)/gi, // diskutil apfs deleteContainer / eraseVolume
     /chmod\s+(-R\s+)?[0-7]?777/gi, // world-writable, recursive or not
     /\b(curl|wget)\b[^|;&]*\|\s*(sudo\s+)?(ba|z|k|da)?sh\b/gi, // pipe remote script into a shell
     /:\(\)\s*\{[^}]*:\|:.*\}/g, // Fork bomb

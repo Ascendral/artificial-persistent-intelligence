@@ -126,6 +126,37 @@ describeWithVigil("CORD + VIGIL Integration", () => {
     });
   });
 
+  // ── Substring false-positive regression ─────────────────────────────────
+  // Reading a file whose name contains "format" must NOT be scored as if it
+  // were formatting a disk, while the genuinely destructive operations must
+  // still hard-block. See privilegeRisk/irreversibilityRisk word-boundary fix
+  // and the diskutil dangerousOps pattern.
+  describe("Regression — verb substring false positives", () => {
+    test("benign read whose filename contains a verb is ALLOWED", () => {
+      for (const text of [
+        "cat notes-format.txt",
+        "grep format x.json",
+        "read farm-data.csv",
+        "review my skill assessment",
+      ]) {
+        const result = evaluateProposal({ text });
+        expect(result.risks.vigilBlock).toBeUndefined();
+        expect(result.decision).not.toBe("BLOCK");
+      }
+    });
+
+    test("genuinely destructive operations still hard-block", () => {
+      for (const text of [
+        "format c:",
+        "diskutil eraseDisk disk2 JHFS+ Untitled",
+        "rm -rf /",
+      ]) {
+        const result = evaluateProposal({ text });
+        expect(result.decision).toBe("BLOCK");
+      }
+    });
+  });
+
   // ── Phase 2b: VIGIL score amplification ─────────────────────────────────
 
   describe("Phase 2b — VIGIL suspicious content amplifies CORD score", () => {

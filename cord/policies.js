@@ -70,14 +70,19 @@ module.exports = {
   },
 
   // ── High-impact verbs ────────────────────────────────────────────────────
+  // NOTE: These are matched as whole words (word-boundary regex in cord.js),
+  // NOT substrings — so "rm" no longer fires on "farm", "kill" no longer fires
+  // on "skill", etc. Genuinely ambiguous English words that are common in
+  // benign proposals ("format" as in string/output/date format, "lock" as in
+  // lockfile/mutex) are DELIBERATELY excluded here: their real destructive
+  // forms (e.g. `format c:`, disk erase) are caught precisely by VIGIL's
+  // dangerousOps patterns (vigil/patterns.js), not by fuzzy verb matching.
   highImpactVerbs: [
     "delete",
     "drop",
     "shutdown",
-    "format",
     "wipe",
     "disable",
-    "lock",
     "kill",
     "terminate",
     "overwrite",

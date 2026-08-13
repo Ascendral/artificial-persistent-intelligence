@@ -109,6 +109,16 @@ describe("privilegeRisk", () => {
     expect(privilegeRisk("wipe the disk", [])).toBe(2);
   });
 
+  // Regression: substring matching used to fire on innocent words that merely
+  // CONTAIN a verb ("farm" → "rm", "skill" → "kill", filenames with "format").
+  test("does not false-positive on words that merely contain a verb", () => {
+    expect(privilegeRisk("cat my-format-notes.txt", [])).toBe(0);
+    expect(privilegeRisk("grep format config.json", [])).toBe(0);
+    expect(privilegeRisk("read farm-data.csv", [])).toBe(0);
+    expect(privilegeRisk("review my skill assessment", [])).toBe(0);
+    expect(privilegeRisk("swipe the screen", [])).toBe(0);
+  });
+
   test("detects elevated grants", () => {
     expect(privilegeRisk("do something", ["admin"])).toBe(2);
     expect(privilegeRisk("do something", ["sudo"])).toBe(2);
@@ -145,7 +155,17 @@ describe("irreversibilityRisk", () => {
   test("returns 3 for high-impact verbs", () => {
     expect(irreversibilityRisk("delete all data")).toBe(3);
     expect(irreversibilityRisk("overwrite config")).toBe(3);
-    expect(irreversibilityRisk("format the drive")).toBe(3);
+    expect(irreversibilityRisk("erase the drive")).toBe(3);
+  });
+
+  // Regression: reading a file whose NAME contains "format" is not formatting a
+  // disk; grepping for the word "format" is not destructive. Substring matching
+  // scored these as irreversible=3.
+  test("does not false-positive on words that merely contain a verb", () => {
+    expect(irreversibilityRisk("cat my-format-notes.txt")).toBe(0);
+    expect(irreversibilityRisk("grep format config.json")).toBe(0);
+    expect(irreversibilityRisk("read farm-data.csv")).toBe(0);
+    expect(irreversibilityRisk("review my skill assessment")).toBe(0);
   });
 
   test("returns 0 for safe/reversible actions", () => {
